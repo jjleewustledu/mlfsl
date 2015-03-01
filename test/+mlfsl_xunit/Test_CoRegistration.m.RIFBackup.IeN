@@ -1,0 +1,46 @@
+classdef Test_CoRegistration < TestCase
+	%% TEST_COREGISTRATION  
+	%% Version $Revision$ was created $Date$ by $Author$  
+	%% and checked into svn repository $URL$ 
+	%% Developed on Matlab 7.10.0.499 (R2010a) 
+	%% $Id$ 
+
+	properties 
+        WORK_FOLDER = '';
+        DATA_FOLDER = '';
+        ref_fp      = '';
+	end 
+
+	methods 
+
+		function this = Test_CoRegistration(varargin)
+            this      = this@TestCase(varargin{:});
+            this.WORK_FOLDER = fullfile(getenv('HOME'), 'Tmp', '');
+            this.DATA_FOLDER = fullfile(srcroot, 'mpackages', 'mlfsl', 'test', 'data');
+            assert(copyfile(fullfile(this.DATA_FOLDER, '*'), this.WORK_FOLDER));
+            this.ref_fp      = fullfile(getenv('FSLDIR'), 'data', 'standard', 'MNI152_T1_2mm');
+        end
+        
+        function this = test_ctor(this)
+            assert(~isempty(this.WORK_FOLDER));
+            assert(~isempty(this.DATA_FOLDER));
+            assert(exist(this.WORK_FOLDER, 'dir'));
+            assert(exist(this.DATA_FOLDER, 'dir'));
+            assert(exist([this.ref_fp, '.nii.gz']));
+        end
+        
+        function this = test_warp_ep2d(this)
+            
+            MSG_EXPECTED = [];
+            ep2d_fp      = 'ep2d_mcf_meanvol';
+            ep2d_warped_fp = 'ep2d_warped';
+            cor = CoRegistration('EPI', this.WORK_FOLDER);
+            [ep2d_warped_nii, msg] = cor.getwarp(ep2d_fp, this.ref_fp, ep2d_warped_fp)
+            assert(~isempty(ep2d_warped_nii) && strcmp(ep2d_warped_fp, ep2d_warped_nii.fileprefix));
+            mi = mutualinfo(ep2d_warped_nii, ref_nii)
+            assert(0 < mi && mi < 10)
+            assert(strcmp(msg, MSG_EXPECTED));
+        end
+	end 
+    %  Created with newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
+end 

@@ -1,0 +1,53 @@
+classdef Test_mlfsl < mlfourd_xunit.Test_mlfourd 
+	%% TEST_MLFSL 
+    %  Usage:  >> runtests tests_dir  
+ 	%          >> runtests Test_mlfsl % in . or the matlab path 
+ 	%          >> runtests Test_mlfsl:test_nameoffunc 
+ 	%          >> runtests(Test_mlfsl, Test_Class2, Test_Class3, ...) 
+ 	%  See also:  package xunit%  Version $Revision: 2314 $ was created $Date: 2013-01-12 17:53:38 -0600 (Sat, 12 Jan 2013) $ by $Author: jjlee $,  
+ 	%  last modified $LastChangedDate: 2013-01-12 17:53:38 -0600 (Sat, 12 Jan 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mlfsl/test/+mlfsl_xunit/trunk/Test_mlfsl.m $ 
+ 	%  Developed on Matlab 7.13.0.564 (R2011b) 
+ 	%  $Id: Test_mlfsl.m 2314 2013-01-12 23:53:38Z jjlee $ 
+ 	%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad) 
+
+    properties (Dependent)
+        reference
+    end
+
+    methods (Static)
+        function       assertKLdiv(expected, fn0, fn)
+            import mlfsl_xunit.*;
+            assertVectorsAlmostEqual( ...
+                expected, ...
+                single(Test_mlfsl.calculateKL(fn0, fn)));
+        end   
+        function kld = calculateKL(fn0, fn)
+            import mlfourd.* mlentropy.*;
+            assert(lexist(filename(fn0),'file'));
+            assert(lexist(filename(fn), 'file'));
+            kl  = KL(NIfTI.load(fn0), NIfTI.load(fn));
+            kld = kl.kldivergence;
+            if (isnan(kld))
+                kld = kl.H; % KLUDGE
+            end
+        end
+        function klh = calculateKLH(fn)
+            import mlfourd.* mlentropy.*;
+            assert(lexist(filename(fn), 'file'));
+            kl  = KL(NIfTI.load(fn));
+            klh = kl.H_p;
+        end 
+    end
+    
+	methods
+        function ref  = get.reference(this)
+            ref = this.fslFullfilename(this.t1fp);
+        end       
+ 		function this = Test_mlfsl(varargin)
+ 			this = this@mlfourd_xunit.Test_mlfourd(varargin{:}); 
+        end 
+ 	end 
+
+	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
+end
+

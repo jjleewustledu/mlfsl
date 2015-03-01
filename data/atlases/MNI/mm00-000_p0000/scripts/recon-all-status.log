@@ -1,0 +1,79 @@
+status file for recon-all
+Fri Mar  7 00:06:21 CST 2014
+recon-all -s mm00-000_p0000 finished without error at Fri Mar  7 00:06:27 CST 2014
+\n\n
+New invocation of recon-all 
+\n\n
+status file for recon-all
+Fri Mar  7 00:08:53 CST 2014
+#@# MotionCor Fri Mar  7 00:08:53 CST 2014
+#@# Talairach Fri Mar  7 00:09:01 CST 2014
+#@# Talairach Failure Detection Fri Mar  7 00:10:15 CST 2014
+#@# Nu Intensity Correction Fri Mar  7 00:10:15 CST 2014
+#@# Intensity Normalization Fri Mar  7 00:11:16 CST 2014
+#@# Skull Stripping Fri Mar  7 00:13:21 CST 2014
+#@# EM Registration Fri Mar  7 00:31:01 CST 2014
+#@# CA Normalize Fri Mar  7 00:47:45 CST 2014
+#@# CA Reg Fri Mar  7 00:49:11 CST 2014
+#@# CA Reg Inv Fri Mar  7 03:10:57 CST 2014
+#@# Remove Neck Fri Mar  7 03:11:46 CST 2014
+#@# SkullLTA Fri Mar  7 03:12:47 CST 2014
+#@# SubCort Seg Fri Mar  7 03:36:02 CST 2014
+#@# Merge ASeg Fri Mar  7 03:55:02 CST 2014
+#@# Intensity Normalization2 Fri Mar  7 03:55:02 CST 2014
+#@# Mask BFS Fri Mar  7 03:58:42 CST 2014
+#@# WM Segmentation Fri Mar  7 03:58:44 CST 2014
+#@# Fill Fri Mar  7 04:01:30 CST 2014
+#@# Tessellate lh Fri Mar  7 04:02:13 CST 2014
+#@# Smooth1 lh Fri Mar  7 04:02:21 CST 2014
+#@# Inflation1 lh Fri Mar  7 04:02:27 CST 2014
+#@# QSphere lh Fri Mar  7 04:02:54 CST 2014
+#@# Fix Topology lh Fri Mar  7 04:06:05 CST 2014
+#@# Make White Surf lh Fri Mar  7 04:21:45 CST 2014
+#@# Smooth2 lh Fri Mar  7 04:27:15 CST 2014
+#@# Inflation2 lh Fri Mar  7 04:27:20 CST 2014
+#@# Curvature Stats lh Fri Mar  7 04:28:53 CST 2014
+#@# Sphere lh Fri Mar  7 04:29:00 CST 2014
+#@# Surf Reg lh Fri Mar  7 05:01:00 CST 2014
+#@# Jacobian white lh Fri Mar  7 05:21:31 CST 2014
+#@# AvgCurv lh Fri Mar  7 05:21:33 CST 2014
+#@# Cortical Parc lh Fri Mar  7 05:21:35 CST 2014
+#@# Make Pial Surf lh Fri Mar  7 05:22:24 CST 2014
+#@# Surf Volume lh Fri Mar  7 05:34:08 CST 2014
+#@# WM/GM Contrast lh Fri Mar  7 05:34:08 CST 2014
+#@# Parcellation Stats lh Fri Mar  7 05:34:15 CST 2014
+#@# Cortical Parc 2 lh Fri Mar  7 05:34:34 CST 2014
+#@# Parcellation Stats 2 lh Fri Mar  7 05:35:31 CST 2014
+#@# Cortical Parc 3 lh Fri Mar  7 05:35:52 CST 2014
+#@# Parcellation Stats 3 lh Fri Mar  7 05:36:45 CST 2014
+#@# Tessellate rh Fri Mar  7 05:37:06 CST 2014
+#@# Smooth1 rh Fri Mar  7 05:37:15 CST 2014
+#@# Inflation1 rh Fri Mar  7 05:37:23 CST 2014
+#@# QSphere rh Fri Mar  7 05:37:54 CST 2014
+#@# Fix Topology rh Fri Mar  7 05:41:35 CST 2014
+#@# Make White Surf rh Fri Mar  7 05:55:41 CST 2014
+#@# Smooth2 rh Fri Mar  7 06:01:23 CST 2014
+#@# Inflation2 rh Fri Mar  7 06:01:29 CST 2014
+#@# Curvature Stats rh Fri Mar  7 06:02:59 CST 2014
+#@# Sphere rh Fri Mar  7 06:03:06 CST 2014
+#@# Surf Reg rh Fri Mar  7 06:34:41 CST 2014
+#@# Jacobian white rh Fri Mar  7 06:58:32 CST 2014
+#@# AvgCurv rh Fri Mar  7 06:58:34 CST 2014
+#@# Cortical Parc rh Fri Mar  7 06:58:36 CST 2014
+#@# Make Pial Surf rh Fri Mar  7 06:59:31 CST 2014
+#@# Surf Volume rh Fri Mar  7 07:13:05 CST 2014
+#@# WM/GM Contrast rh Fri Mar  7 07:13:05 CST 2014
+#@# Parcellation Stats rh Fri Mar  7 07:13:12 CST 2014
+#@# Cortical Parc 2 rh Fri Mar  7 07:13:32 CST 2014
+#@# Parcellation Stats 2 rh Fri Mar  7 07:14:36 CST 2014
+#@# Cortical Parc 3 rh Fri Mar  7 07:14:57 CST 2014
+#@# Parcellation Stats 3 rh Fri Mar  7 07:15:47 CST 2014
+#@# Cortical ribbon mask Fri Mar  7 07:16:07 CST 2014
+#@# ASeg Stats Fri Mar  7 07:24:29 CST 2014
+#@# AParc-to-ASeg Fri Mar  7 07:28:36 CST 2014
+#@# WMParc Fri Mar  7 07:30:54 CST 2014
+#@# BA Labels lh Fri Mar  7 07:41:56 CST 2014
+#@# BA Labels rh Fri Mar  7 07:45:41 CST 2014
+#@# Ex-vivo Entorhinal Cortex Label lh Fri Mar  7 07:49:28 CST 2014
+#@# Ex-vivo Entorhinal Cortex Label rh Fri Mar  7 07:49:43 CST 2014
+recon-all -s mm00-000_p0000 finished without error at Fri Mar  7 07:49:58 CST 2014

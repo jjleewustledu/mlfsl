@@ -1,0 +1,181 @@
+classdef Test_FlirtBuilder < mlfsl_xunit.Test_mlfsl
+	%% TEST_FLIRTFACADE  
+    %% Usage:  runtests('mlfsl_xunit.Test_FlirtBuilder:test_unitTestName', '-verbose')
+    %%
+	%% Version $Revision: 2288 $ was created $Date: 2012-10-30 20:06:51 -0500 (Tue, 30 Oct 2012) $ by $Author: jjlee $  
+	%% and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mlfsl/test/+mlfsl_xunit/trunk/Test_FlirtBuilder.m $ 
+	%% Developed on Matlab 7.10.0.499 (R2010a) 
+	%% $Id: Test_FlirtBuilder.m 2288 2012-10-31 01:06:51Z jjlee $ 
+
+    properties (Constant)
+        kldiv_t1_t2      = 0.088875119095288;
+        kldiv_t1_t2ont1  = 0.898098883035243;
+          klH_t1_t2ont1  = 0.304083672612801;
+          klH_primitives = { 0.272639207578218 ...
+                             0.00298888408257953 ...
+                             1.02126351281633 ...
+                             0.00148046777301085 ...
+                             0 ...
+                             2.67380480758806e-05 };
+        primitives       = { 'gre_006' 'ir_003' 'ptr' 't1_018' 't2_004' 'tof_013' };
+        invertxfm_matrix = [ 1.0063   -0.0246   -0.0015   17.2640; ...
+                             0.0251    0.9810    0.0320  -21.0375; ...
+                             0.0039   -0.0370    1.0001  -68.8645; ...
+                             0         0         0         1.0000];
+        concatxfm_matrix = [ -0.0132    0.0336    1.0330   89.6728; ...
+                             -0.9852   -0.3085    0.0073  285.8070; ...
+                              0.3002   -1.0400    0.0584  137.7130; ...
+                              0         0         0         1.0000 ];
+        tol_type         =  'absolute';
+        tol              =   0.0001
+    end
+    
+    properties (Dependent)
+        fqPrimitives
+    end
+    
+	properties
+        srcroot = '/Users/jjlee/Local/src';
+        flirtf
+        builder
+    end
+
+	methods
+ 		function test_constructRegistered(this)  			
+ 			%% TEST_CONSTRUCTREGISTERED acts as the client to FslBuilder,
+            %  which is both a director and a builder
+            %  Tests:  flirt via FslBuilder.constructRegistered
+            
+ 			import mlfsl.*; 
+             
+             mrBuilder  = MrImageBuilder;
+             mrDirector =   AbstractImageDirector(mrBuilder);
+            flairOnT1   = mrDirector.constructRegistered(this.flair, this.t1);
+            assert(eqtool(this.flairRef, flairOnT1));
+             
+            petBuilder  = PetImageBuilder;
+            petDirector =    AbstractImageDirector(petBuilder);
+            petoefOnT1  = petDirector.constructRegistered(this.petoef, this.t1);
+            assert(eqtool(this.petoefOnT1, petoefOnT1));
+ 		end % test_constructRegistered
+        
+        
+        
+        function test_flirtT1ToRef(this)
+            import mlfsl_xunit.* mlfourd_xunit.*;
+            %Test_mlfourd.printCompared(this.fqPrimitives{p}, ...
+            assertElementsAlmostEqual( ...
+                this.klH_primitives{p}, ...
+                Test_FlirtBuilder.calculateKLH(this.fqPrimitives{p}));
+        end
+        function test_flirtT2ToRef(this)
+        end
+        function test_flirtIrToRef(this)
+        end
+        function test_flirtDwiToRef(this)
+        end
+        function test_flirtGreToRef(this)
+        end
+        function test_flirtEp2dToRef(this)
+        end
+        function test_flirtHoToRef(this)
+        end
+        function test_flirtOcToRef(this)
+        end
+        
+        function test_applyxfm(this)
+            import mlfsl_xunit.*;
+            opts.ref = fullfilename(this.fslPath, 't1_002');
+            opts.in  = fullfilename(this.fslPath, 't2_004');
+            opts.out = fullfilename(this.fslPath, 'test_applyxfm');
+            [s,r]    = this.flirtf.applyxfm(opts);
+                       this.assertFlirted(s, r, opts);
+        end
+        function assertFlirted(this, s, r, opts)
+            assertEqual(0, s, r);
+            this.assertKLH_t1_t2ont1(opts);
+        end
+        function test_invertxfm(this)
+            opts.inverse = this.flirtf.matrix_fqfn('t2_004', 't1_002');   
+            [s,r]        = this.flirtf.invertxfm(opts);
+            assertEqual(0, s, r);
+            assertElementsAlmostEqual(this.invertxfm_matrix, ...
+                                      this.loadMatrix('t1_002', 't2_004'), ...
+                                      this.tol_type, this.tol);
+        end
+        function test_concatxfm(this)
+            opts.AtoB = this.flirtf.matrix_fqfn('t2_004', 't1_002');
+            opts.BtoC = this.flirtf.matrix_fqfn('t1_002',  this.flirtf.mniStd);
+            [s,r]     = this.flirtf.concatxfm(opts);
+            assertEqual(0, s, r);
+            assertElementsAlmostEqual(this.concatxfm_matrix, ...
+                                      this.loadMatrix('t2_004', this.flirtf.mniStd), ...
+                                      this.tol_type, this.tol);
+        end
+        
+        function test_mflirt(this)
+            import mlfsl_xunit.* mlfourd_xunit.*;
+            opts(1).ref = fullfilename(this.fslPath, 't1_002');
+            opts(1).in  = fullfilename(this.fslPath, 't2_004');
+            opts(1).out = fullfilename(this.fslPath, 'test_mflirt1');
+            opts(2).ref = fullfilename(this.fslPath, 't2_004');
+            opts(2).in  = fullfilename(this.fslPath, 't1_002');
+            opts(2).out = fullfilename(this.fslPath, 'test_mflirt2');
+            this.flirtf.mflirt(opts);
+            %Test_mlfourd.printCompared('test_mflirt', ...
+            assertElementsAlmostEqual( ...
+                0.231829704926123, Test_FlirtBuilder.calculateKL('t2_004.nii.gz', 'test_mflirt2.nii.gz'));
+        end
+        function test_flirt(this)
+            import mlfsl_xunit.*;
+            opts.ref = fullfilename(this.fslPath, 't1_002');
+            opts.in  = fullfilename(this.fslPath, 't2_004');
+            opts.out = fullfilename(this.fslPath, 'test_flirt');
+            [s,r]    = this.flirtf.flirt(opts);
+            assertElementsAlmostEqual( ...
+                this.klH_t1_t2ont1, Test_FlirtBuilder.calculateKL('t1_002.nii.gz', 'test_flirt.nii.gz'));
+        end
+        function test_atlasPath(this)
+            assertEqual( ...
+                fullfile('/','opt','fsl','data','atlases','HarvardOxford',''), ...
+                this.flirtf.atlasPath);
+        end
+        function test_ctor(this)
+            assert(isa(this.flirtf, 'mlfsl.FlirtBuilder'));
+        end
+        
+        function this = Test_FlirtBuilder(varargin)
+            this = this@mlfsl_xunit.Test_mlfsl(varargin{:});
+        end        
+        function setUp(this)
+            import mlfsl.* mlfourd.*;
+            this.flirtf = FlirtBuilder( ...
+                          MRIConverter.creation(this.modalityPath));
+            cd(this.fslPath);
+        end
+	end % methods
+    
+    %% PROTECTED
+    
+    methods (Access = 'protected')
+        function mat  = loadMatrix(this, fp, fp2)
+            mat = load(this.flirtf.matrix_fqfn(fp, fp2), '-ascii');
+        end
+        function assertKLdiv_t1_t2(this, opts)
+            assert(isfield(opts, 'ref'));
+            assert(isfield(opts, 'in'));            
+            mlfsl_xunit.Test_FlirtBuilder.assertKLdiv( this.kldiv_t1_t2ont1, opts.ref, opts.in );
+        end
+        function assertKLdiv_t1_t2ont1(this, opts)
+            assert(isfield(opts, 'ref'));
+            assert(isfield(opts, 'out'));            
+            mlfsl_xunit.Test_FlirtBuilder.assertKLdiv( this.kldiv_t1_t2ont1, opts.ref, opts.out );
+        end
+        function assertKLH_t1_t2ont1(this, opts)
+            assert(isfield(opts, 'ref'));
+            assert(isfield(opts, 'out'));            
+            mlfsl_xunit.Test_FlirtBuilder.assertKLdiv( this.klH_t1_t2ont1, opts.ref, opts.out );
+        end
+    end % protected methods
+    %  Created with newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
+end 
