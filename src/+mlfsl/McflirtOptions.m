@@ -19,7 +19,7 @@ classdef McflirtOptions < mlfsl.FslOptions
         cost = 'normmi'; % {mutualinfo,woods,corratio,normcorr,normmi,leastsquares}        (default is normcorr)
         bins % <number of histogram bins>   (default is 256)
         dof = 12; % <number of transform dofs>    (default is 6)
-        refvol = 1; % <number of reference volume> (default is no_vols/2)- registers to (n+1)th volume in series
+        refvol % <number of reference volume> (default is no_vols/2)- registers to (n+1)th volume in series
         reffile % <filename>            use a separate 3d image file as the target for registration (overrides refvol option)
         scaling % <num>                     (6.0 is default)
         smooth % <num>                      (1.0 is default - controls smoothing in cost function)

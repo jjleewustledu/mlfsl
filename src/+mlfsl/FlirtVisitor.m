@@ -31,8 +31,9 @@ classdef FlirtVisitor < mlfsl.FslVisitor
     
 	methods 
         function bldr       = visitAlignmentBuilder2buildMotionCorrected(this, bldr)
-            opts            = mlfsl.McflirtOptions;
-            opts.in         = bldr.product.fqfileprefix;
+            opts             = mlfsl.McflirtOptions;
+            opts.in          = bldr.product.fqfileprefix;
+            opts.dof         = 6;
             [~,bldr.product] = this.mcflirt(opts);
         end
         function bldr       = visitAlignmentBuilder2applyXfm(this, bldr)
