@@ -28,7 +28,7 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
         function      morphT1ForStudy(pth)
             if (~exist('pth', 'var')); pth = pwd; end
             cd(pth);
-            dt = mlfourd.DirTools('mm0*');
+            dt = mlsystem.DirTools('mm0*');
             for t = 1:dt.length
                 cd(fullfile(dt.fqdns{t}, 'fsl', ''));
                 fprintf('MorphingDirector.morphT1ForStudy is working in %s\n', ...
