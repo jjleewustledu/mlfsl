@@ -88,8 +88,9 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
     
 	methods
         function [prd, this] = morphT1(this, varargin)
+            import mlsurfer.*;
             p = inputParser;
-            addOptional(p, 'T1Image', 't1_default.nii.gz', @(x) lexist(x, 'file'));
+            addOptional(p, 'T1Image', [SurferFilesystem.T1_FILEPREFIX '.nii.gz'], @(x) lexist(x, 'file'));
             parse(p, varargin{:});
             prd = this.morphSingle2bettedStandard(p.Results.T1Image);
         end
