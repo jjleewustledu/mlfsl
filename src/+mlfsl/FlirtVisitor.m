@@ -16,6 +16,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
         PREPROCESS_LIST = { 'none' 'gauss' 'susan' 'blindd' };
              XFM_SUFFIX = '.mat';
             DEFAULT_DOF = 6;
+            ALWAYS_SAVE = false;
     end
 
     methods (Static)
@@ -25,11 +26,97 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             assert(lexist(   bldr.sessionPath, 'dir'));
             assert(~lstrfind(bldr.sessionPath, 'fsl'));
             this = mlfsl.FlirtVisitor('product', bldr.product, 'sessionPath', bldr.sessionPath);
-            setenv('SUBJECTS_DIR', this.studyPath);
         end 
     end
     
 	methods 
+        function bldr       = visitMotionCorrectionForPET(this, bldr)
+            opts             = mlfsl.McflirtOptions;
+            if (~isempty(bldr.referenceImage))
+                this.ensureSaved(bldr.referenceImage);
+                opts.reffile = ref.fqfilename;
+            end
+            this.ensureSaved(bldr.product);
+            opts.in          = bldr.product.fqfileprefix;
+            opts.dof         = 6;
+            opts.cost        = 'mutualinfo';
+            [~,bldr.product] = this.mcflirt(opts);            
+        end
+        function [bldr,xfm] = visitFlirtForPET(this, bldr)
+            opts          = mlfsl.FlirtOptions;
+            this.ensureSaved(bldr.product);
+            this.ensureSaved(bldr.referenceImage);
+            opts.in       = bldr.product.fqfileprefix;
+            opts.ref      = bldr.referenceImage.fqfileprefix;
+            opts.dof      = 6;  
+            opts.cost     = 'normmi';
+            opts.searchrx = ' -20 20 ';
+            opts.searchry = ' -20 20 ';
+            opts.searchrz = ' -20 20 ';
+            opts          = this.checkWeights(bldr, opts);            
+            [~,xfm]       = this.flirt(opts);
+        end
+        function [bldr,xfm] = visitFlirtMultimodal(this, bldr)
+            opts          = mlfsl.FlirtOptions;
+            this.ensureSaved(bldr.product);
+            this.ensureSaved(bldr.referenceImage);
+            opts.in       = bldr.product.fqfileprefix;
+            opts.ref      = bldr.referenceImage.fqfileprefix;
+            opts.dof      = 6;  
+            opts.cost     = 'normmi';
+            opts          = this.checkWeights(bldr, opts);            
+            [~,xfm]       = this.flirt(opts);
+        end
+        function bldr       = visitApplyXfm(this, bldr)
+            opts         = mlfsl.FlirtOptions;
+            this.ensureSaved(bldr.product);
+            this.ensureSaved(bldr.referenceImage);
+            opts.in      = bldr.product.fqfileprefix;
+            opts.ref     = bldr.referenceImage.fqfileprefix;
+            opts.init    = bldr.xfm;
+            [~,fqfn]     = this.applyTransform(opts);
+            bldr.product = mlfourd.ImagingContext(mlfourd.NIfTId(fqfn));
+        end
+        function bldr       = visitApplyXfmNN(this, bldr)
+            opts         = mlfsl.FlirtOptions;
+            opts.interp  = 'nearestneighbour';
+            this.ensureSaved(bldr.product);
+            this.ensureSaved(bldr.referenceImage);
+            opts.in      = bldr.product.fqfileprefix;
+            opts.ref     = bldr.referenceImage.fqfileprefix;
+            opts.init    = bldr.xfm;
+            [~,fqfn]     = this.applyTransform(opts);
+            bldr.product = mlfourd.ImagingContext(mlfourd.NIfTId(fqfn));
+        end
+        function bldr       = visitInvertXfm(this, bldr)
+            opts         = mlfsl.ConvertXfmOptions;
+            opts.inverse = bldr.xfm;
+            opts.omat    = this.xfmInverseName(bldr.xfm);
+            [~,bldr.xfm] = this.inverseTransform(opts);
+        end
+        function bldr       = visitConcatXfms(this, bldr, xfms)
+            %% VISITCONCATXFM 
+            %  Usage: xfms = {<mat_AtoB> <mat_BtoC> <mat_CtoD>}
+            %         builder = this.visitConcatXfm(builder, xfms)
+            %         builder.xfm will contain <mat_AtoD>
+            %  Uses FSL's convert_xfm as follows:
+            %  Usage: convert_xfm [options] <input-matrix-filename>
+            %    e.g. convert_xfm -omat <outmat> -inverse <inmat>
+            %         convert_xfm -omat <outmat_AtoC> -concat <mat_BtoC> <mat_AtoB>
+       
+            assert(iscell(xfms));
+            opts = mlfsl.ConvertXfmOptions;
+            for x = 1:length(xfms)-1                
+                opts.concat   = sprintf('%s %s', xfms{x+1}, xfms{x});
+                opts.omat     = this.xfmConcatName(xfms{x}, xfms{x+1});
+                [~,xfms{x+1}] = this.concatTransforms(opts);
+            end            
+            xfm      = xfms{end};
+            bldr.xfm = xfm;
+        end
+        
+        %% legacy  visits
+        
         function bldr       = visitAlignmentBuilder2buildMotionCorrected(this, bldr)
             opts             = mlfsl.McflirtOptions;
             opts.in          = bldr.product.fqfileprefix;
@@ -172,7 +259,23 @@ classdef FlirtVisitor < mlfsl.FslVisitor
         end
     end 
     
-    methods (Access = 'protected')
+    methods (Access = 'protected')        
+        function opts        = checkWeights(~, bldr, opts)
+            if (~isempty(bldr.inweight))
+                assert(isa(bldr.inweight, 'mlfourd.ImagingContext'));
+                opts.inweight = bldr.inweight.fqfilename; 
+            end
+            if (~isempty(bldr.refweight))
+                assert(isa(bldr.refweight, 'mlfourd.ImagingContext'));
+                opts.refweight = bldr.refweight.fqfilename; 
+            end         
+        end
+        function               ensureSaved(this, ic)
+            assert(isa(ic, 'mlfourd.ImagingContext'));
+            if (~lexist(ic.fqfilename, 'file') || this.ALWAYS_SAVE)
+                ic.niftid.save;
+            end
+        end
         function [this,omat] = flirt(this, opts)
             assert(isa(opts, 'mlfsl.FlirtOptions'));
             [~,log] = mlfsl.FslVisitor.fslcmd('flirt', opts);

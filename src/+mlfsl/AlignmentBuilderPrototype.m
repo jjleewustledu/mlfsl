@@ -1,6 +1,6 @@
 classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
-	%% ALIGNMENTBUILDERPROTOTYPE is a concrete prototpye;
-    %  it uses the prototype design pattern to create a variety of AlignmentBuilders for 
+	%% ALIGNMENTBUILDERPROTOTYPE is a concrete builder and a concrete prototpye.
+    %  It uses the prototype design pattern to create a variety of AlignmentBuilders for 
     %  PET, MRIConverter, Freesurfer, etc., without duplicating the hierarchy of product classes.
 
 	%  $Revision: 2644 $ 
@@ -12,27 +12,27 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
  	%  $Id: AlignmentBuilderPrototype.m 2644 2013-09-21 22:58:45Z jjlee $ 
  	 
 	properties (Dependent)
-         product
  		 referenceImage
+         product
          xfm
          inweight
          refweight
     end 
 
     methods %% SET/GET
-        function this = set.product(this, img)
-            this.product_ = imcast(img, 'mlfourd.ImagingContext');
-        end
-        function img  = get.product(this)
-            assert(~isempty(this.product_));
-            img = imcast(this.product_, 'mlfourd.ImagingContext');
-        end
         function this = set.referenceImage(this, img)
             this.referenceImage_ = imcast(img, 'mlfourd.ImagingContext');
         end
         function img  = get.referenceImage(this)
             assert(~isempty(this.referenceImage_));
             img = imcast(this.referenceImage_, 'mlfourd.ImagingContext');
+        end
+        function this = set.product(this, img)
+            this.product_ = imcast(img, 'mlfourd.ImagingContext');
+        end
+        function img  = get.product(this)
+            assert(~isempty(this.product_));
+            img = imcast(this.product_, 'mlfourd.ImagingContext');
         end
         function x    = get.xfm(this)
             %% GET.XFM returns one of:
@@ -61,14 +61,14 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             w = this.inweight_;
         end
         function this = set.inweight(this, w)
-            this.inweight_ = [imcast(w, 'fqfileprefix') mlfourd.NIfTIInterface.FILETYPE_EXT];
+            this.inweight_ = [imcast(w, 'fqfileprefix') mlfourd.INIfTI.FILETYPE_EXT];
         end
         function w    = get.refweight(this)
             %%%assert(isempty(this.refweight_) || lexist(this.refweight_, 'file'));
             w = this.refweight_;
         end
         function this = set.refweight(this, w)
-            this.refweight_ = [imcast(w, 'fqfileprefix') mlfourd.NIfTIInterface.FILETYPE_EXT];
+            this.refweight_ = [imcast(w, 'fqfileprefix') mlfourd.INIfTI.FILETYPE_EXT];
         end
     end
     
@@ -103,8 +103,7 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
         function this = applywarp(this)
             vtor = mlfsl.FnirtVisitor;
             this = vtor.visitAlignmentBuilder2applywarp(this);
-        end
-            
+        end            
         function obj  = clone(this)
             obj = mlfsl.AlignmentBuilderPrototype(this);
         end
@@ -155,9 +154,11 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
  		end 
     end 
 
+    %% PRIVATE
+    
     properties (Access = 'private')
-        product_
         referenceImage_
+        product_
         xfm_
         inweight_
         refweight_
