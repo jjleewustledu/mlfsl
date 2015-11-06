@@ -1,12 +1,15 @@
 classdef AlignmentBuilder 
-	%% ALIGNMENTBUILDER 
-    
-    % is the interface for alignment, or co-registration.
-    % Classes are organized according to the builder design patterns.   
-    % It is also an abstract Prototype: AlignmentBuilder subclasses follow 
-    % the prototpye design pattern of AlignmentBuilder.
-    
-    % See also:  mlpatterns.Builder, mlfsl.AlignmentDirector
+	%% ALIGNMENTBUILDER is the abstraction for alignment, or co-registration.
+    %  Its implementaions are organized according to the builder design pattern.   
+    %  See also:  mlpatterns.Builder for pattern ideas;
+    %             AlignmentBuilderPrototype, mlpet.AlignmentBuilderPrototype, 
+    %             PETAlignmentBuilder, MRAlignmentBuilder, MorphingBuilder, 
+    %             RoisBuilder, PETSegstatsBuilder for legacy builders;
+    %             AlignmentDirectorComponent, AlignmentDirector, AlignmentDirectorDecorator, 
+    %             PETAlignmentDirector, MRAlignmentDirector, MorphingDirector for legacty directors;
+    %             FlirtVisitor, FslVisitor, PipelineVisitor, mlunpacking.UnpackingVisitor 
+    %             for auxiliary use of the visitor design pattern;
+    %             GluTAlignmentBuilder, GluTAlignmentDirector for 2nd generation examples.
     
 	% $Revision: 2644 $ 
  	% $Date: 2013-09-21 17:58:45 -0500 (Sat, 21 Sep 2013) $ 
@@ -16,8 +19,6 @@ classdef AlignmentBuilder
  	% Developed on Matlab 8.1.0.604 (R2013a) 
  	% $Id: AlignmentBuilder.m 2644 2013-09-21 22:58:45Z jjlee $ 
  	 
-    %%
-    
 	properties (Abstract)
         referenceImage
         product
@@ -26,17 +27,9 @@ classdef AlignmentBuilder
         refweight
     end 
     
-    %%
-    
-    methods (Abstract)
-        obj = clone(this)
-    end
-    
-    %%
-    
     methods 
         
-        % Empty, to be subclassed by concrete builders
+        %% Empty, to be subclassed by concrete builders
         
         function this = buildUnpacked(this)
         end
@@ -66,9 +59,10 @@ classdef AlignmentBuilder
         end
         function this = applywarp(this)
         end
+        function obj  = clone(this) %#ok<MANU>
+            obj = [];
+        end
     end
-    
-    %%
     
 	methods (Access = 'protected')
  		function this = AlignmentBuilder() 
