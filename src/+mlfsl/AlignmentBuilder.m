@@ -1,4 +1,4 @@
-classdef AlignmentBuilder 
+classdef (Abstract) AlignmentBuilder 
 	%% ALIGNMENTBUILDER is the abstraction for alignment, or co-registration.
     %  Its implementaions are organized according to the builder design pattern.   
     %  See also:  mlpatterns.Builder for pattern ideas;
@@ -20,9 +20,9 @@ classdef AlignmentBuilder
  	% $Id: AlignmentBuilder.m 2644 2013-09-21 22:58:45Z jjlee $ 
  	 
 	properties (Abstract)
-        referenceImage
-        product
-        xfm
+        product        % needed by FlirtVisitor
+        referenceImage % "
+        xfm            % "
         inweight
         refweight
     end 

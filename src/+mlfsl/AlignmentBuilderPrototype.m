@@ -134,13 +134,13 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             import mlfsl.*;
             p = inputParser;
             p.KeepUnmatched = true;
-            addParamValue(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'xfm',            [], @(x) lexist(x, 'file') || lexist([x FlirtVisitor.XFM_SUFFIX], 'file'));
-            addParamValue(p, 'inweight',       [], @(x) isa(x, 'mlfourd.ImagingContext'));
-            addParamValue(p, 'refweight',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'xfm',            [], @(x) lexist(x, 'file') || lexist([x FlirtVisitor.XFM_SUFFIX], 'file'));
+            addParameter(p, 'inweight',       [], @(x) isa(x, 'mlfourd.ImagingContext'));
+            addParameter(p, 'refweight',      [], @(x) isa(x, 'mlfourd.ImagingContext'));
             parse(p, varargin{:});
             this.product_        = p.Results.image;
             if (~isempty(p.Results.product))
