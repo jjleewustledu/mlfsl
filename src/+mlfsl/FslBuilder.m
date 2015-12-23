@@ -140,7 +140,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
         function str   = outputRedirection
             if (mlpipeline.PipelineRegistry.instance.logging)
                 str = sprintf(' >> %s 2>&1', ...
-                             ['FslBuilder' mlpipeline.Logger.LOGFILE_EXT]);
+                             ['FslBuilder.log']);
             else
                 str = '';
             end            
@@ -152,7 +152,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
                 return
             end
             namstr = mlchoosers.ImagingChoosers.coregNameStruct(varargin{:});
-            fqfn = fullfile(namstr.path, [namstr.pre mlchoosers.ImagingChoosersInterface.INTERIMAGE_TOKEN namstr.post mlfsl.FlirtVisitor.XFM_SUFFIX]);
+            fqfn = fullfile(namstr.path, [namstr.pre mlfsl.FslRegistry.INTERIMAGE_TOKEN namstr.post mlfsl.FlirtVisitor.XFM_SUFFIX]);
         end
         function niis  = xfms2niis(xfms)
             assert(iscell(xfms));

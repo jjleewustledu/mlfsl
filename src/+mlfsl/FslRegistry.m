@@ -1,5 +1,4 @@
 classdef FslRegistry < mlpatterns.Singleton    
-
     %% FSLREGISTRY is a wrapper for simple database queries; is an mlpatterns.Singleton
     %
     %  Instantiation:  instance = mlfsl.FslRegistry.instance;
@@ -19,6 +18,12 @@ classdef FslRegistry < mlpatterns.Singleton
     %  Created by John Lee on 2009-02-15.
     %  Copyright (c) 2009 Washington University School of Medicine.  All rights reserved.
     %  Report bugs to <email="bugs.perfusion.neuroimage.wustl.edu@gmail.com"/>.
+    
+    properties (Constant)
+        IMAGING_SUFFIXES = {'.nii.gz' '.nii' '.hdr'};
+        INTERIMAGE_TOKEN =  '_on_';
+    end
+    
     properties
         baseBlur           = mlpet.O15Builder.petFwhh;
         confidenceInterval = 95;

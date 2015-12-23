@@ -68,7 +68,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
 
             import mlfsl.*;
                  pfix  = imcast(pfix, 'fqfileprefix');
-            [pth,pfix] = gzfileparts(pfix);
+            [pth,pfix] = myfileparts(pfix);
                  pfix  = fullfile(pth, ...
                          [BrainExtractionVisitor.betTokens.prefix pfix BrainExtractionVisitor.betTokens.suffix]);
         end
@@ -100,7 +100,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
             import mlfsl.*;
             pfix = imcast(pfix, 'fqfileprefix');
             if (BrainExtractionVisitor.isbetted(pfix))
-                [pth,pfix] = gzfileparts(pfix);                
+                [pth,pfix] = myfileparts(pfix);                
                 tkns = mlfsl.BrainExtractionVisitor.betTokens;
                 for b = 1:length(tkns)                    
                     p = tkns(b).prefix;
@@ -146,7 +146,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
         function this = bet(this, opts)
             assert(isa(opts, 'mlfsl.BrainExtractionOptions'));
             [~,log] = mlfsl.FslVisitor.fslcmd('bet', opts);
-                      this.logged.add(log);  
+                      this.logger.add(log);  
             this.product = mlfourd.ImagingContext.load(opts.out_tag);
         end
     end

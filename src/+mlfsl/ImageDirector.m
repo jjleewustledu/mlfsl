@@ -20,7 +20,7 @@ classdef ImageDirector
         hoMeanvol
         ir
         lastProduct
-        logged
+        logger
         oc
         oo
         ooMeanvol
@@ -59,7 +59,7 @@ classdef ImageDirector
         function prd  = get.lastProduct(this)
             prd = this.builder_.lastProduct;
         end
-        function im = get.logged(this)
+        function im = get.logger(this)
             im = ;
         end
         function im = get.oc(this)

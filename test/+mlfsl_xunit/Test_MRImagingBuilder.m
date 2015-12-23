@@ -23,14 +23,6 @@ classdef Test_MRImagingBuilder < TestCase
 	methods 
  		% N.B. (Static, Abstract, Access='', Hidden, Sealed)
         
-        function test_buildUnpacked(this) 
-            
- 			import mlfourd.* mlfsl.*; 
-            mrBlder  = MRImagingBuilder;
-            director =   AbstractFslDirector(mrBlder);
-            director.unpack;
-            assert(isa(director, 'mlfourd.AbstractFslDirector'));   
- 		end % test_buildUnpacked 
         function test_createFromDicomPath(this)
         end % test_createFromDicomPath
         function test_queryNativeImagingTypes(this)

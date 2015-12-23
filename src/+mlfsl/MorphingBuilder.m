@@ -75,53 +75,55 @@ classdef MorphingBuilder < mlmr.MRAlignmentBuilder
     
     methods
         function this = buildBetted2Betted(this)
-            vtor = mlfsl.FlirtVisitor;
-            this = vtor.visitAlignmentBuilder(this);
+            visit = mlfsl.FlirtVisitor;
+            this  = visit.align6DOF(this);
             
-            vtor         = mlfsl.FnirtVisitor;
+            nvisit       = mlfsl.FnirtVisitor;
             this.xfm     = this.xfm;
             this.warp    = this.warp;
             this.product = this.product;
-            this         = vtor.visitAlignmentBuilder(this);
-            this         = vtor.visitAlignmentBuilder2applywarp(this);
+            this         = nvisit.visitAlignmentBuilder(this);
+            this         = nvisit.visitAlignmentBuilder2applywarp(this);
         end
         function this = buildFnirted(this)
-            vtor = mlfsl.FnirtVisitor;
-            this = vtor.visitAlignmentBuilder(this);
-            this = vtor.visitAlignmentBuilder2applywarp(this);
+            nvisit = mlfsl.FnirtVisitor;
+            this   = nvisit.visitAlignmentBuilder(this);
+            this   = nvisit.visitAlignmentBuilder2applywarp(this);
         end
         function this = buildFnirted2standard(this)
             bproduct            = this.product;
             this.referenceImage = this.standardImage;
-            vtor                = mlfsl.FlirtVisitor;
-            this                = vtor.visitAlignmentBuilder(this);
+            visit               = mlfsl.FlirtVisitor;
+            this                = visit.align6DOF(this);
             
-            vtor         = mlfsl.FnirtVisitor;
+            nvisit       = mlfsl.FnirtVisitor;
             this.xfm     = this.xfm;
             this.warp    = this.warp;
             this.product = bproduct;
-            this         = vtor.visitAlignmentBuilder(this);
-            this         = vtor.visitAlignmentBuilder2applywarp(this);
+            this         = nvisit.visitAlignmentBuilder(this);
+            this         = nvisit.visitAlignmentBuilder2applywarp(this);
         end
         function this = buildFnirted2bettedStandard(this)
-            %vtor = mlfsl.BrainExtractionVisitor;
+            import mlfsl.*;
+            
+            %vtor = BrainExtractionVisitor;
             %this = vtor.visitMRAlignmentBuilder(this);
             this.product = mlfourd.ImagingContext.load(fullfile(this.product.filepath, ['b' this.product.filename]));
             
-            vtor = mlfsl.FastVisitor;
-            this = vtor.visitMRAlignmentBuilder_t1channel(this);
+            avisit = FastVisitor;
+            this   = avisit.visitMRAlignmentBuilder_t1channel(this);
             
             bproduct            = this.product;
             this.referenceImage = this.bettedStandard; 
-            vtor                = mlfsl.FlirtVisitor;
-            this                = vtor.visitAlignmentBuilder(this);
+            visit               = FlirtVisitor;
+            this                = visit.align6DOF(this);
             
-            vtor         = mlfsl.FnirtVisitor;
+            nvisit       = FnirtVisitor;
             this.xfm     = this.xfm;  %% KLUDGE to set private variables
             this.warp    = this.warp; %
             this.product = bproduct;  %
-            this         = vtor.visitAlignmentBuilder(this);
-            this         = vtor.visitAlignmentBuilder2applywarp(this);
+            this         = nvisit.visitAlignmentBuilder(this);
+            this         = nvisit.visitAlignmentBuilder2applywarp(this);
         end
         function this = buildFnirted4T2star(this)
             
@@ -130,12 +132,12 @@ classdef MorphingBuilder < mlmr.MRAlignmentBuilder
             assert(~isempty(this.product));
             assert(~isempty(this.warp));
             assert(~isempty(this.xfm));
-            vtor = mlfsl.FnirtVisitor;
-            this = vtor.visitAlignmentBuilder2applywarp(this);
+            nvisit = mlfsl.FnirtVisitor;
+            this   = nvisit.visitAlignmentBuilder2applywarp(this);
         end
         function this = buildInvwarp(this)
-            vtor = mlfsl.FnirtVisitor;
-            this = vtor.visitAlignmentBuilder2invwarp(this);
+            nvisit = mlfsl.FnirtVisitor;
+            this   = nvisit.visitAlignmentBuilder2invwarp(this);
         end
         function obj  = clone(this)
             obj = mlfsl.MorphingBuilder(this);

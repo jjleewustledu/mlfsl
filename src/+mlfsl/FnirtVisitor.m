@@ -55,8 +55,6 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             opts.out  = this.thisOnThatImageFilename(bldr.bettedStandard.fqfileprefix, [opts.ref this.WARPCOEF_SUFFIX]);
             [~,bldr.product] = this.invwarp(opts);
         end
-        function bldr            = visitAlignmentBuilder2convertwarp(~, bldr)
-        end
         function rbldr           = visitRoisBuilder2applywarp(this, rbldr)
             opts            = mlfsl.ApplywarpOptions;
             opts.in         = rbldr.product.fqfileprefix;
@@ -83,19 +81,19 @@ classdef FnirtVisitor < mlfsl.FslVisitor
         function [this,nlxfm] = fnirt(this, opts)
             assert(isa(opts, 'mlfsl.FnirtOptions'));
             [~,log] = mlfsl.FslVisitor.fslcmd('fnirt', opts);
-                      this.logged.add(log);  
+                      this.logger.add(log);  
               nlxfm = opts.cout;
         end
         function [this,im ]   = applywarp(this, opts)
             assert(isa(opts, 'mlfsl.ApplywarpOptions'));
             [~,log]     = mlfsl.FslVisitor.fslcmd('applywarp', opts); 
-                          this.logged.add(log);
+                          this.logger.add(log);
             im          = opts.out;
         end
         function [this,im]    = invwarp(this, opts)            
             assert(isa(opts, 'mlfsl.InversewarpOptions'));
             [~,log]     = mlfsl.FslVisitor.fslcmd('invwarp', opts); 
-                          this.logged.add(log);
+                          this.logger.add(log);
             im          = opts.out;
         end
         function [this,im]    = convertwarp(this, ~) %#ok<MCUOA>

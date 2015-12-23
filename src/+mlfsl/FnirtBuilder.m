@@ -333,7 +333,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             la    = axis(Nhalf+1:end);
         end % static splitAxis      
         function fn      = diary_fn
-            fn = ['FnirtBuilder_tagROIs_' mlfsl.Np797Registry.ensurePnum(pwd) mlpipeline.Logger.LOGFILE_EXT];
+            fn = ['FnirtBuilder_tagROIs_' mlfsl.Np797Registry.ensurePnum(pwd) '.log'];
         end % static diary_fn               
         function fn      = xfmOnStd(fp)
             

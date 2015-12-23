@@ -13,7 +13,7 @@ classdef FslDirectorInterface
 	properties (Abstract)
         builder
         products
-        logged
+        logger
  	end
 
 	methods  (Abstract)

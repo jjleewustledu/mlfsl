@@ -1,4 +1,4 @@
-classdef AlignmentDirector < mlfsl.AlignmentDirectorComponent
+classdef AlignmentDirector < mlfsl.IAlignmentDirector
 	%% ALIGNMENTDIRECTOR is the concrete component in a decorator design pattern;
     %  additional responsibilities may be attached
 
@@ -12,8 +12,10 @@ classdef AlignmentDirector < mlfsl.AlignmentDirectorComponent
 
     properties (Dependent)
         alignmentBuilder
+        logger
         product
         referenceImage
+        sourceImage
         xfm
         inweight
         refweight
@@ -27,17 +29,29 @@ classdef AlignmentDirector < mlfsl.AlignmentDirectorComponent
         function bldr = get.alignmentBuilder(this)
             bldr = this.alignmentBuilder_;
         end
-        function this = set.product(this, img)
-            this.alignmentBuilder_.product = img;
+        function this = set.logger(this, lg)
+            this.alignmentBuilder_.logger = lg;
         end
-        function img  = get.product(this)
-            img = this.alignmentBuilder_.product;
+        function img  = get.logger(this)
+            img = this.alignmentBuilder_.logger;
         end
-        function this = set.referenceImage(this, img)
-            this.alignmentBuilder_.referenceImage = img;
+        function this = set.product(this, prod)
+            this.alignmentBuilder_.product = prod;
         end
-        function img  = get.referenceImage(this)
-            img = this.alignmentBuilder_.referenceImage;
+        function prod = get.product(this)
+            prod = this.alignmentBuilder_.product;
+        end
+        function this = set.referenceImage(this, ref)
+            this.alignmentBuilder_.referenceImage = ref;
+        end
+        function ref  = get.referenceImage(this)
+            ref = this.alignmentBuilder_.referenceImage;
+        end
+        function this = set.sourceImage(this, src)
+            this.alignmentBuilder_.sourceImage = src;
+        end
+        function img  = get.sourceImage(this)
+            img = this.alignmentBuilder_.sourceImage;
         end
         function this = set.xfm(this, x)
             this.alignmentBuilder_.xfm = x;
@@ -158,8 +172,9 @@ classdef AlignmentDirector < mlfsl.AlignmentDirectorComponent
             this.product = prd;
         end
         function [prd,this]  = applyXfm(this, prd, ref, xfm)
-            prd = imcast(prd, 'mlfourd.ImagingContext');
-            ref = imcast(ref, 'mlfourd.ImagingContext');
+            import mlfourd.*;
+            prd = ImagingContext(prd);
+            ref = ImagingContext(ref);
             assert(ischar(xfm));
             
             this.product          = prd;

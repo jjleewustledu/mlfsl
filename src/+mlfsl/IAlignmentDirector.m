@@ -1,16 +1,17 @@
-classdef AlignmentDirectorComponent  
-	%% ALIGNMENTDIRECTORCOMPONENT defines the interface for dynamically adding responsibilities
+classdef IAlignmentDirector  
+	%% IALIGNMENTDIRECTOR defines the interface for dynamically adding responsibilities in a decorator design pattern
 
 	%  $Revision: 2644 $ 
  	%  was created $Date: 2013-09-21 17:58:45 -0500 (Sat, 21 Sep 2013) $ 
  	%  by $Author: jjlee $,  
  	%  last modified $LastChangedDate: 2013-09-21 17:58:45 -0500 (Sat, 21 Sep 2013) $ 
- 	%  and checked into repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mlfsl/src/+mlfsl/trunk/AlignmentDirectorComponent.m $,  
+ 	%  and checked into repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mlfsl/src/+mlfsl/trunk/IAlignmentDirector.m $,  
  	%  developed on Matlab 8.1.0.604 (R2013a) 
- 	%  $Id: AlignmentDirectorComponent.m 2644 2013-09-21 22:58:45Z jjlee $  	  
+ 	%  $Id: IAlignmentDirector.m 2644 2013-09-21 22:58:45Z jjlee $  	  
     
     properties (Abstract)
         alignmentBuilder
+        logger
         product
         referenceImage
         xfm

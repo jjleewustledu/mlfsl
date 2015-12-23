@@ -5,7 +5,7 @@ classdef (Abstract) AlignmentBuilder
     %             AlignmentBuilderPrototype, mlpet.AlignmentBuilderPrototype, 
     %             PETAlignmentBuilder, MRAlignmentBuilder, MorphingBuilder, 
     %             RoisBuilder, PETSegstatsBuilder for legacy builders;
-    %             AlignmentDirectorComponent, AlignmentDirector, AlignmentDirectorDecorator, 
+    %             IAlignmentDirector, AlignmentDirector, AlignmentDirectorDecorator, 
     %             PETAlignmentDirector, MRAlignmentDirector, MorphingDirector for legacty directors;
     %             FlirtVisitor, FslVisitor, PipelineVisitor, mlunpacking.UnpackingVisitor 
     %             for auxiliary use of the visitor design pattern;
@@ -20,6 +20,7 @@ classdef (Abstract) AlignmentBuilder
  	% $Id: AlignmentBuilder.m 2644 2013-09-21 22:58:45Z jjlee $ 
  	 
 	properties (Abstract)
+        sessionPath
         product        % needed by FlirtVisitor
         referenceImage % "
         xfm            % "
@@ -31,11 +32,13 @@ classdef (Abstract) AlignmentBuilder
         
         %% Empty, to be subclassed by concrete builders
         
-        function this = buildUnpacked(this)
-        end
         function this = buildBetted(this)
         end
+        function this = buildBiasCorrected(this)
+        end
         function this = buildFasted(this)
+        end
+        function this = buildFieldCorrected(this)
         end
         function this = buildFiltered(this)
         end
@@ -51,13 +54,11 @@ classdef (Abstract) AlignmentBuilder
         end
         function this = buildResampled(this)
         end
-        function this = buildBiasCorrected(this)
-        end
-        function this = buildFieldCorrected(this)
-        end
         function this = applyXfm(this)
         end
         function this = applywarp(this)
+        end
+        function this = invertXfm(this)
         end
         function obj  = clone(this) %#ok<MANU>
             obj = [];

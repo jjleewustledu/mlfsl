@@ -1,4 +1,4 @@
-classdef AlignmentDirectorDecorator < mlfsl.AlignmentDirectorComponent
+classdef AlignmentDirectorDecorator < mlfsl.IAlignmentDirector
 	%% DECORATEDALIGNMENTDIRECTOR maintains a reference to a component object,
     %  forwarding requests to the component object.   
     %  Maintains an interface consistent with the component's interface.
@@ -14,8 +14,10 @@ classdef AlignmentDirectorDecorator < mlfsl.AlignmentDirectorComponent
     
     properties (Dependent)
         alignmentBuilder
+        logger
         product
         referenceImage
+        sourceImage
         xfm
         inweight
         refweight
@@ -28,17 +30,29 @@ classdef AlignmentDirectorDecorator < mlfsl.AlignmentDirectorComponent
         function bldr = get.alignmentBuilder(this)
             bldr = this.component_.alignmentBuilder;
         end
-        function this = set.product(this, img)
-            this.component_.product = img;
+        function this = set.logger(this, lg)
+            this.component_.logger = lg;
+        end
+        function img  = get.logger(this)
+            img = this.component_.logger;
+        end
+        function this = set.product(this, prod)
+            this.component_.product = prod;
         end
         function img  = get.product(this)
             img = this.component_.product;
         end
-        function this = set.referenceImage(this, img)
-            this.component_.referenceImage = img;
+        function this = set.referenceImage(this, ref)
+            this.component_.referenceImage = ref;
         end
         function img  = get.referenceImage(this)
             img = this.component_.referenceImage;
+        end
+        function this = set.sourceImage(this, src)
+            this.component_.sourceImage = src;
+        end
+        function img  = get.sourceImage(this)
+            img = this.component_.sourceImage;
         end
         function this = set.xfm(this, x)
             this.component_.xfm = x;
@@ -96,7 +110,7 @@ classdef AlignmentDirectorDecorator < mlfsl.AlignmentDirectorComponent
             %                                            ^ default is an AlignmentDirector
             
             p = inputParser;
-            addOptional(p, 'cmp', mlfsl.AlignmentDirector, @(x) isa(x, 'mlfsl.AlignmentDirectorComponent'));
+            addOptional(p, 'cmp', mlfsl.AlignmentDirector, @(x) isa(x, 'mlfsl.IAlignmentDirector'));
             parse(p, varargin{:});
             
             this.component_ = p.Results.cmp;

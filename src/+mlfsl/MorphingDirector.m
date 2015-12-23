@@ -164,9 +164,9 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
         end        
         function [prd, this] = align2fsaverage1mm(this, img)
             this.product = imcast(img, 'mlfourd.ImagingContext');
-            vtor = mlfsl.FlirtVisitor;
-            this = vtor.visitAlign2fsaverage1mm(this);
-            prd  = this.product;
+            visit = mlfsl.FlirtVisitor;
+            this  = visit.alignToFsaverage1mm(this);
+            prd   = this.product;
         end
         function [prd,msk,this] = morph2fsaverage1mm(this, img, msk) 
             [img,this] = this.morphSingle2bettedStandard(img);

@@ -45,7 +45,7 @@ classdef FlirtBuilder < mlfsl.FslBuilder
             
             function fn = foo(fn0)
                 fn = '';
-                if (~lstrfind(fn0, mlchooseres.ImagingChoosersInterface.INTERIMAGE_TOKEN))
+                if (~lstrfind(fn0, mlfsl.FslRegistry.INTERIMAGE_TOKEN))
                     fn = fn0;
                 end
             end % foo
@@ -82,7 +82,7 @@ classdef FlirtBuilder < mlfsl.FslBuilder
         end
         function nm   = flirtedFilename(nm, targ)
             if (~lstrfind(targ, mlfsl.FlirtBuilder.FLIRT_TOKEN))
-                targ = [mlchooseres.ImagingChoosersInterface.INTERIMAGE_TOKEN targ];
+                targ = [mlfsl.FslRegistry.INTERIMAGE_TOKEN targ];
             end
             nm = filename([fileprefix(nm) targ]);
         end         

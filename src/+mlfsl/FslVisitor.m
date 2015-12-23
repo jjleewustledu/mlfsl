@@ -10,16 +10,16 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
  	%  $Id: FslVisitor.m 2629 2013-09-16 06:19:00Z jjlee $ 
     
 	methods (Static)
-        function [s,r] = cmd(exe, opts, varargin)
+        function [s,r]   = cmd(exe, opts, varargin)
             [s,r] = mlfsl.FslVisitor.fslcmd(exe, opts, varargin{:});
         end
-        function msg   = help(exe)
+        function msg     = help(exe)
             msg = mlfsl.FslVisitor.fslhelp(exe);
         end
-        function [s,r] = view(fns)
+        function [s,r]   = view(fns)
             [s,r] = mlfsl.FslVisitor.fslview(fns);
         end
-        function [s,r] = fslcmd(exe, opts, varargin)
+        function [s,r,c] = fslcmd(exe, opts, varargin)
             %% FSLCMD is a mini-facade to the FSL command-line
             %  [s,r] = FslVisitor.fslcmd(executable[, option, option2, ...])
             %                           ^ cmd name; without options, typically returns usage help 
@@ -31,14 +31,16 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             for v = 1:length(varargin)
                 opts = sprintf('%s %s', opts, FslVisitor.oany2str(varargin{v}, exe));
             end
+            c = sprintf('%s %s %s', exe, opts, FslVisitor.outputRedirection);
             r = '';
             try
-                [s,r] = mlbash(sprintf('%s %s %s', exe, opts, FslVisitor.outputRedirection));
+                [s,r] = mlbash(c);
+                if (0 ~= s); error('mlfsl:shellFailure', 'FslVisitor.fslcmd %s\nreturned %i', c, s); end
             catch ME
                 handexcept(ME,r);
             end
         end 
-        function dat   = fslhdParameter(fprefix, pname)
+        function dat     = fslhdParameter(fprefix, pname)
             %% FSLHDPARAMETER accepts NIfTI fileprefixes/names; it returns the stringified value of the first match 
             %  of an FSL-header parameter.
             %  Usage:   datum = FslVisitor.fslhdParameter(fileprefix, param-name)
@@ -54,7 +56,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
                    dat = names(:,1).value;
             end
         end 
-        function msg   = fslhelp(exe)
+        function msg     = fslhelp(exe)
             %% FSLHELP returns cmd-line help in a single string
            
             assert(~isemptyChar(exe));
@@ -71,18 +73,18 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
                 end
             end
         end 
-        function [s,r] = fslmaths(args)
+        function [s,r]   = fslmaths(args)
             [s,r] = mlfsl.FslVisitor.fslcmd('fslmaths', args);
         end       
-        function [s,r] = fslstats(args, optstrct)
+        function [s,r]   = fslstats(args, optstrct)
             [s,r] = mlfsl.FslVisitor.fslcmd('fslstats', args, optstrct);
         end 
-        function [s,r] = fslsusan(inname, hwhh, outname)
+        function [s,r]   = fslsusan(inname, hwhh, outname)
             inname  = ensureFilenameExists(inname);
             outname = ensureFilename(outname);
             [s,r]   = mlfsl.FslVisitor.fslcmd('susan', inname, num2str([-1 hwhh 3 1 0]), outname);
         end 
-        function [s,r] = fslview(fns)
+        function [s,r]   = fslview(fns)
             %% FSLVIEW launches fslview with NIfTI files named in the filelist
             %  Usage:   [sta, std] = obj.fslview( 'file1')
             %           [sta, std] = obj.fslview({'file1' [, 'file2', options_struct]})
@@ -96,7 +98,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             fns{length(fns)+1} = ' &';
             [s,r] = FslVisitor.fslcmd('fslview', optstrct, fns);
         end 
-        function [s,r] = slices(fns, optstrct)
+        function [s,r]   = slices(fns, optstrct)
             %% SLICES launches slices with NIfTI files named in the filelist
             %  Usage:   [sta, std] = obj.slices( 'file1')
             %           [sta, std] = obj.slices({'file1' [, 'file2', options_struct]})
@@ -108,7 +110,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             if (~exist('optstrct','var')); optstrct = struct([]); end
             [s,r] = FslVisitor.fslcmd('slices', optstrct, fns);
         end    
-        function [s,r] = slicesdir(fns, optstrct)
+        function [s,r]   = slicesdir(fns, optstrct)
             %% SLICESDIR launches slicesdir with NIfTI files named in the filelist
             %  Usage:   [sta, std] = obj.slicesdir( 'file1')
             %           [sta, std] = obj.slicesdir({'file1' [, 'file2', options_struct]})
@@ -125,16 +127,16 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             end
             [s,r] = FslVisitor.fslcmd('slicesdir', optstrct, fns);
         end
-        function str   = outputRedirection
+        function str     = outputRedirection
             if (mlpipeline.PipelineRegistry.instance.logging)
                 str = sprintf(' >> %s 2>&1', ...
-                             ['FslVisitor' mlpipleline.Logger.LOGFILE_EXT]); %% KLUDGE 
+                             ['FslVisitor_' datestr(now,30) '.log']); %% KLUDGE 
             else
                 str = '';
             end            
         end
         
-        %% DEPRECATED:   prefer PipelineVisitor.thisOnThatImageFilename, PipelineVisitor.thisOnThatXfmFilename
+        %% See also:  PipelineVisitor.thisOnThatImageFilename, PipelineVisitor.thisOnThatXfmFilename
         
         function fqfn  = xfmName(varargin)
             if (1 == length(varargin))
@@ -146,7 +148,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             import mlchoosers.* mlfsl.*;
             namstr = ImagingChoosers.coregNameStruct(varargin{:});
             fqfn = fullfile(namstr.path, ...
-                           [namstr.pre ImagingChoosersInterface.INTERIMAGE_TOKEN namstr.post FlirtVisitor.XFM_SUFFIX]);
+                           [namstr.pre FslRegistry.INTERIMAGE_TOKEN namstr.post FlirtVisitor.XFM_SUFFIX]);
         end
         function fqfn  = xfmConcatName(fqfn1, fqfn2)
             fqfn = mlfsl.FslVisitor.xfmName(fqfn1, fqfn2);
@@ -155,21 +157,6 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             assert(ischar(fqfn));
             nameStruct = mlchoosers.ImagingChoosers.coregNameStruct(fqfn);
             fqfn       = fullfile(nameStruct.path, [nameStruct.post '_on_' nameStruct.pre mlfsl.FlirtVisitor.XFM_SUFFIX]);
-        end
-        function niis  = xfms2niis(xfms)
-            assert(iscell(xfms));
-            niis = mlpatterns.CellArrayList;
-            for x = 1:length(xfms)
-                niis.add(mlfsl.FslVisitor.xfm2nii(xfms{x}));
-            end
-        end
-        function nii   = xfm2nii(xfm)
-            nii = mlfourd.NIfTI.load(mlfsl.FslVisitor.xfm2imgfn(xfm));
-        end
-        function imgfn = xfm2imgfn(xfm)
-            assert(ischar(xfm));
-            import mlfsl.* mlfourd.*;
-            imgfn = [fileprefix(xfm, FlirtVisitor.XFM_SUFFIX) NIfTIInterface.FILETYPE_EXT];
         end
     end
     

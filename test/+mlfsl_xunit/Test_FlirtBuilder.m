@@ -49,7 +49,7 @@ classdef Test_FlirtBuilder < mlfsl_xunit.Test_mlfsl
             %  which is both a director and a builder
             %  Tests:  flirt via FslBuilder.constructRegistered
             
- 			import mlfsl.*; 
+ 			import mlmr.* mlpet.*; 
              
             mrDirector  = MRIDirector.createFromBuilder(MRIBuilder);
             irOnT1   = mrDirector.constructRegistered(this.ir, this.t1);
