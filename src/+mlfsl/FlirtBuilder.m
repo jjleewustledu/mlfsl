@@ -122,7 +122,7 @@ classdef FlirtBuilder < mlfsl.FslBuilder
             %% COREGISTER is the front-end method for flirting 
             %  Usage:  [this,xfm] = this.coregister(image_object, reference_object)
             %           ^ FlirtBuilder w/ updated products, logs
-            %                                  ^ NIfTIInterface, filename, ...
+            %                                  ^ INIfTI, filename, ...
             %          [this,xfm] = this.coregister(FlirtOptions_object)
 
                 opts = mlfsl.FlirtOptions;
@@ -284,7 +284,7 @@ classdef FlirtBuilder < mlfsl.FslBuilder
             end
         end % concatTransforms  
         function pth         = inBet(this, fp)
-            [~,fp,e] = filepartsx(fp, mlsystem.NIfTIInterface.FILETYPE_EXT);
+            [~,fp,e] = filepartsx(fp, mlfourd.INIfTI.FILETYPE_EXT);
             pth = fullfile(this.bettedPath, [fp e]);
         end         
         

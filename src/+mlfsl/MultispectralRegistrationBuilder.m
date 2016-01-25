@@ -1,5 +1,5 @@
-classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
-	%% MULTISPECTRALALIGNMENTBUILDER  
+classdef MultispectralRegistrationBuilder < mlfsl.PrototypeAlignmentBuilder
+	%% MULTISPECTRALREGISTRATIONBUILDER  
 
 	%  $Revision$
  	%  was created 08-Dec-2015 16:43:03
@@ -26,7 +26,7 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
                 return
             end
             error('mlfsl:unsupportedParamType', ...
-                  'MultispectralAlignmentBuilder.align.nii has unsupported type %s', class(nii));
+                  'MultispectralRegistrationBuilder.align.nii has unsupported type %s', class(nii));
         end
         function this = alignPET2MR(this, pet, mr)
             assert(isa(pet, 'mlpet.PETImagingContext')); 
@@ -89,14 +89,14 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
                 return
             end
             error('mlfsl:unsupportedParamType', ...
-                  'MultispectralAlignmentBuilder.align.nii has unsupported type %s', class(nii));
+                  'MultispectralRegistrationBuilder.align.nii has unsupported type %s', class(nii));
         end
 		  
- 		function this = MultispectralAlignmentBuilder(varargin)
- 			%% MULTISPECTRALALIGNMENTBUILDER
- 			%  Usage:  this = MultispectralAlignmentBuilder()
+ 		function this = MultispectralRegistrationBuilder(varargin)
+ 			%% MULTISPECTRALREGISTRATIONBUILDER
+ 			%  Usage:  this = MultispectralRegistrationBuilder()
  			
- 			this = this@mlfsl.AlignmentBuilderPrototype(varargin{:});             
+ 			this = this@mlfsl.PrototypeAlignmentBuilder(varargin{:});             
  		end
         function viewTogether(~, varargin)
             if (~mlpipeline.PipelineRegistry.instance.verbose)

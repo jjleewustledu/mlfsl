@@ -11,7 +11,7 @@ classdef FileAdapter
  		%       Constant, Dependent, Hidden, Transient) 
         itsPath = '';
         fq = false;
-        ext = mlfourd.NIfTIInterface.FILETYPE_EXT;
+        ext = mlfourd.INIfTI.FILETYPE_EXT;
         checkExist = true;
     end
     

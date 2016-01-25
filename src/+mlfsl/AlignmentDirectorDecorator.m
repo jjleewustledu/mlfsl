@@ -1,5 +1,5 @@
 classdef AlignmentDirectorDecorator < mlfsl.IAlignmentDirector
-	%% DECORATEDALIGNMENTDIRECTOR maintains a reference to a component object,
+	%% ALIGNMENTDIRECTORDECORATOR maintains a reference to a component object,
     %  forwarding requests to the component object.   
     %  Maintains an interface consistent with the component's interface.
     %  Subclasses may optionally perform additional operations before/after forwarding requests.
@@ -13,22 +13,22 @@ classdef AlignmentDirectorDecorator < mlfsl.IAlignmentDirector
  	%  $Id: AlignmentDirectorDecorator.m 2644 2013-09-21 22:58:45Z jjlee $ 
     
     properties (Dependent)
-        alignmentBuilder
+        builder
         logger
-        product
-        referenceImage
+        sourceWeight
+        referenceWeight
         sourceImage
+        referenceImage
+        product
         xfm
-        inweight
-        refweight
     end
   
     methods %% Set/Get
-        function this = set.alignmentBuilder(this, bldr)
-            this.component_.alignmentBuilder = bldr;
+        function this = set.builder(this, bldr)
+            this.component_.builder = bldr;
         end
-        function bldr = get.alignmentBuilder(this)
-            bldr = this.component_.alignmentBuilder;
+        function bldr = get.builder(this)
+            bldr = this.component_.builder;
         end
         function this = set.logger(this, lg)
             this.component_.logger = lg;
@@ -60,17 +60,17 @@ classdef AlignmentDirectorDecorator < mlfsl.IAlignmentDirector
         function x    = get.xfm(this)
             x = this.component_.xfm;
         end
-        function this = set.inweight(this, w)
-            this.component_.inweight = w;
+        function this = set.sourceWeight(this, w)
+            this.component_.sourceWeight = w;
         end
-        function w    = get.inweight(this)
-            w = this.component_.inweight;
+        function w    = get.sourceWeight(this)
+            w = this.component_.sourceWeight;
         end
-        function this = set.refweight(this, w)
-            this.component_.refweight = w;
+        function this = set.referenceWeight(this, w)
+            this.component_.referenceWeight = w;
         end
-        function w    = get.refweight(this)
-            w = this.component_.refweight;
+        function w    = get.referenceWeight(this)
+            w = this.component_.referenceWeight;
         end
     end
 

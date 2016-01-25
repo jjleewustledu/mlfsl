@@ -58,7 +58,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
 
             name = filename( ...
                    mlfsl.BrainExtractionVisitor.bettedFileprefix(name), ...
-                   mlfourd.NIfTIInterface.FILETYPE_EXT);
+                   mlfourd.INIfTI.FILETYPE_EXT);
         end % static bettedFilename  
         function pfix  = bettedFileprefix(pfix)
             %% BETTEDFILEPREFIX adds bet prefix/suffix
@@ -91,7 +91,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
             
             name = filename( ...
                    mlfsl.BrainExtractionVisitor.unbettedFileprefix(name), ...
-                   mlfourd.NIfTIInterface.FILETYPE_EXT);
+                   mlfourd.INIfTI.FILETYPE_EXT);
         end % static unbettedFilename
         function pfix  = unbettedFileprefix(pfix)
             %% UNBETTEDFILENAME strips bet prefix/suffix preserving path if present
@@ -145,7 +145,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
     methods (Access = 'private')
         function this = bet(this, opts)
             assert(isa(opts, 'mlfsl.BrainExtractionOptions'));
-            [~,log] = mlfsl.FslVisitor.fslcmd('bet', opts);
+            [~,log] = mlfsl.FslVisitor.cmd('bet', opts);
                       this.logger.add(log);  
             this.product = mlfourd.ImagingContext.load(opts.out_tag);
         end

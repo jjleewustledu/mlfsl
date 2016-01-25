@@ -43,17 +43,17 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
     methods %% set/get
         function this = set.standardImage(this, std)
             assert(~isempty(std));
-            this.alignmentBuilder.standardImage = std;
+            this.builder.standardImage = std;
         end
         function std  = get.standardImage(this)
-            std = this.alignmentBuilder.standardImage;
+            std = this.builder.standardImage;
         end
         function this = set.bettedStandard(this, bstd)
             assert(~isempty(bstd));
-            this.alignmentBuilder.bettedStandard = bstd;
+            this.builder.bettedStandard = bstd;
         end
         function bstd = get.bettedStandard(this)
-            bstd = this.alignmentBuilder.bettedStandard;
+            bstd = this.builder.bettedStandard;
         end
         function this = set.fnirtConfig(this, cfg)
             assert(ischar(cfg));
@@ -67,22 +67,22 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
             cfg = this.fnirtConfig_;
         end
         function this = set.warp(this, w)
-            this.alignmentBuilder.warp = w;
+            this.builder.warp = w;
         end
         function w    = get.warp(this)
-            w = this.alignmentBuilder.warp;
+            w = this.builder.warp;
         end
         function this = set.premat(this, x)
-            this.alignmentBuilder.premat = x;
+            this.builder.premat = x;
         end
         function x    = get.premat(this)
-            x = this.alignmentBuilder.premat;
+            x = this.builder.premat;
         end
         function this = set.postmat(this, x)
-            this.alignmentBuilder.postmat = x;
+            this.builder.postmat = x;
         end
         function x    = get.postmat(this)
-            x = this.alignmentBuilder.postmat;
+            x = this.builder.postmat;
         end
     end
     
@@ -106,17 +106,17 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
         function ic = ensureBetted(this, ic)
         end
         function [prd, this] = morphT2star2standard(this, t2s, t1)
-            betBldr         = this.alignmentBuilder.clone;
+            betBldr         = this.builder.clone;
             betBldr.product = t1;
             betBldr         = betBldr.buildBetted;
             bt1             = betBldr.product;
             
-            t1Bldr                = this.alignmentBuilder.clone;
+            t1Bldr                = this.builder.clone;
             t1Bldr.product        = bt1;
             t1Bldr.referenceImage = this.bettedStandard;
             t1Bldr                = t1Bldr.buildFlirted;
             
-            t2sBldr                = this.alignmentBuilder.clone;
+            t2sBldr                = this.builder.clone;
             t2sBldr.product        = t2s;
             t2sBldr.referenceImage = bt1;
             t2sBldr                = t2sBldr.buildFlirted;
@@ -125,31 +125,31 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
             this.referenceImage    = this.standardImage;
             this.xfm               = t1Bldr.xfm;
             this.premat            = t2sBldr.xfm;
-            this.alignmentBuilder = this.alignmentBuilder.buildFnirted;
+            this.builder = this.builder.buildFnirted;
             prd                    = this.product;
         end
         function [prd, this] = morphSingle2standard(this, img)
             this.product           = img;
             this.referenceImage    = this.standardImage;
-            this.alignmentBuilder = this.alignmentBuilder.buildFnirted2standard;
+            this.builder = this.builder.buildFnirted2standard;
             prd                    = this.product;
         end
         function [prd, this] = morphSingle2bettedStandard(this, img)
             this.product          = img;
             this.referenceImage   = this.bettedStandard;
-            this.alignmentBuilder = this.alignmentBuilder.buildFnirted2bettedStandard;
+            this.builder = this.builder.buildFnirted2bettedStandard;
             prd                   = this.product;
         end
         function [prd, this] = morphBetted2betted(this, img, img2)
             this.product          = imcast(img,  'mlfourd.ImagingContext');
             this.referenceImage   = imcast(img2, 'mlfourd.ImagingContext');
-            this.alignmentBuilder = this.alignmentBuilder.buildBetted2Betted;
+            this.builder = this.builder.buildBetted2Betted;
             prd                   = this.product;
         end
         function [prd, this] = invmorph2bt1default(this, img)
             this.product          = img;
             this.referenceImage   = this.bettedStandard;
-            this.alignmentBuilder = this.alignmentBuilder.buildInvwarp;
+            this.builder = this.builder.buildInvwarp;
             prd                   = this.product;
         end
         function [prd, this] = morphPair(this, varargin)
@@ -159,7 +159,7 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
             parse(p, varargin{:});
             this.product           = p.Results.img;
             this.referenceImage    = p.Results.ref;
-            this.alignmentBuilder = this.alignmentBuilder.buildFnirted;
+            this.builder = this.builder.buildFnirted;
             prd                    = this.product;
         end        
         function [prd, this] = align2fsaverage1mm(this, img)
@@ -173,7 +173,7 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
             [prd,this] = this.align2fsaverage1mm(img);
             
             this.product = msk;
-            this.alignmentBuilder = this.alignmentBuilder.buildApplywarp;
+            this.builder = this.builder.buildApplywarp;
             [msk,this] = this.align2fsaverage1mm(this.product);
         end
         
@@ -182,7 +182,7 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
  			%  Usage:  obj = MorphingDirector(builder) 
 
             this = this@mlfsl.AlignmentDirectorDecorator(varargin{:});
-            assert(isa(this.alignmentBuilder, 'mlfsl.MorphingBuilder'));
+            assert(isa(this.builder, 'mlfsl.MorphingBuilder'));
  		end %  ctor 
     end 
     
@@ -197,7 +197,7 @@ classdef MorphingDirector < mlfsl.AlignmentDirectorDecorator
         function [this,morphedobj] = applyMorph(this, nlxfm, imobj, stnd, varargin)
             if (nargin < 4)
                 stnd = this.standardImage; end
-            [this.alignmentBuilder, morphedobj] = this.alignmentBuilder.applyMorph(imobj, stnd, nlxfm, varargin{:});
+            [this.builder, morphedobj] = this.builder.applyMorph(imobj, stnd, nlxfm, varargin{:});
         end
     end
     

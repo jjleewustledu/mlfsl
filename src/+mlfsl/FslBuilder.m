@@ -166,7 +166,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
         end
         function imgfn = xfm2imgfn(xfm)
             assert(ischar(xfm));
-            imgfn = [fileprefix(xfm, mlfsl.FlirtVisitor.XFM_SUFFIX) mlfourd.NIfTIInterface.FILETYPE_EXT];
+            imgfn = [fileprefix(xfm, mlfsl.FlirtVisitor.XFM_SUFFIX) mlfourd.INIfTI.FILETYPE_EXT];
         end
     end
         
@@ -211,7 +211,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
     
     methods
         function pth   = inFsl(this, fp)
-            [~,fp,e] = filepartsx(fp, mlfourd.NIfTIInterface.FILETYPE_EXT);
+            [~,fp,e] = filepartsx(fp, mlfourd.INIfTI.FILETYPE_EXT);
             pth = fullfile(this.fslPath, [fp e]);
         end
         function         visualCheck(this, objs)
@@ -259,7 +259,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
         function str   = otherwise2str(obj)
             if (isnumeric(obj))
                 str = mat2str(obj);
-            elseif (isa(obj, 'mlfourd.NIfTIInterface'))
+            elseif (isa(obj, 'mlfourd.INIfTI'))
                 str = obj.fqfilename;
             elseif (isobject(obj))
                 try

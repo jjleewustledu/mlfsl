@@ -27,8 +27,8 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             assert(lexist(bldr.xfm, 'file'));
             opts.aff        = bldr.xfm;
             opts.cout       = this.thisOnThatImageFilename(opts.in, [opts.ref this.WARPCOEF_SUFFIX]);
-            if (lexist(bldr.inweight, 'file'))
-                opts.inmask = bldr.inweight; end
+            if (lexist(bldr.sourceWeight, 'file'))
+                opts.inmask = bldr.sourceWeight; end
             if (lexist(bldr.refweight, 'file'))
                 opts.refmask = bldr.refweight; end
             [~,nlxfm]        = this.fnirt(opts);
@@ -80,23 +80,24 @@ classdef FnirtVisitor < mlfsl.FslVisitor
     methods (Access = 'protected')
         function [this,nlxfm] = fnirt(this, opts)
             assert(isa(opts, 'mlfsl.FnirtOptions'));
-            [~,log] = mlfsl.FslVisitor.fslcmd('fnirt', opts);
+            [~,log] = this.cmd('fnirt', opts);
                       this.logger.add(log);  
               nlxfm = opts.cout;
         end
         function [this,im ]   = applywarp(this, opts)
             assert(isa(opts, 'mlfsl.ApplywarpOptions'));
-            [~,log]     = mlfsl.FslVisitor.fslcmd('applywarp', opts); 
+            [~,log]     = this.cmd('applywarp', opts); 
                           this.logger.add(log);
             im          = opts.out;
         end
         function [this,im]    = invwarp(this, opts)            
             assert(isa(opts, 'mlfsl.InversewarpOptions'));
-            [~,log]     = mlfsl.FslVisitor.fslcmd('invwarp', opts); 
+            [~,log]     = this.cmd('invwarp', opts); 
                           this.logger.add(log);
             im          = opts.out;
         end
-        function [this,im]    = convertwarp(this, ~) %#ok<MCUOA>
+        function [this,im]    = convertwarp(this, opts) 
+            im = opts.out;
         end
     end
 

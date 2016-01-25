@@ -39,8 +39,8 @@ classdef FlirtGauss < mlfsl.FlirtStrategy
         end
         function cst         = costfun(this, out, ref)
             p = inputParser;
-            addOptional(p, 'out', this.imOut, @(x) isa(x, 'mlfourd.NIfTIInterface'));
-            addOptional(p, 'ref', this.imRef, @(x) isa(x, 'mlfourd.NIfTIInterface'));
+            addOptional(p, 'out', this.imOut, @(x) isa(x, 'mlfourd.INIfTI'));
+            addOptional(p, 'ref', this.imRef, @(x) isa(x, 'mlfourd.INIfTI'));
             parse(p, out, ref);
             theKL = mlentropy.KL(p.Results.out, p.Results.ref);
             cst = theKL.kldivergence;

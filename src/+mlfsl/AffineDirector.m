@@ -44,7 +44,7 @@ classdef AffineDirector < mlfsl.FslDirector
             %% coregisterSequence coregisters img = img1 (on) img2 (on) img3 (on) ... 
             
             import mlfourd.*;
-            imlist = ImagingArrayList.ensureImagingArrayList(varargin);
+            imlist = ImagingArrayList(varargin);
             xfms   = ImagingArrayList;
             for s = 1:length(imlist)-1
                 [this, x] = this.coregister(imlist.get(s), imlist.get(s+1));
@@ -76,7 +76,7 @@ classdef AffineDirector < mlfsl.FslDirector
         function [this,img] = applyTransformSequence(this, xfmlist, img)
             %% applyTransformSequence applies:   img = xfm1.xfm2.xfm3 ... img for xfmlist = {xmf1 xfm2 xfm3 ...}
             
-            xfmlist = mlfourd.ImagingArrayList.ensureImagingArrayList(xfmlist);
+            xfmlist = mlfourd.ImagingArrayList(xfmlist);
             for s = length(xfmlist):-1:1
                 [this,img] = this.applyTransform(xfmlist.get(s), img);
             end

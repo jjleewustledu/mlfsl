@@ -15,30 +15,30 @@ classdef McflirtOptions < mlfsl.FslOptions
 
 	properties
 	    in % <infile>
-        % out % <outfile>                     (default is infile_mcf)
-        cost = 'normmi'; % {mutualinfo,woods,corratio,normcorr,normmi,leastsquares}        (default is normcorr)
-        bins % <number of histogram bins>   (default is 256)
-        dof = 12; % <number of transform dofs>    (default is 6)
-        refvol % <number of reference volume> (default is no_vols/2)- registers to (n+1)th volume in series
-        reffile % <filename>            use a separate 3d image file as the target for registration (overrides refvol option)
-        scaling % <num>                     (6.0 is default)
-        smooth % <num>                      (1.0 is default - controls smoothing in cost function)
-        rotation % <num>                    specify scaling factor for rotation optimization tolerances
-        verbose % <num>                     (0 is least and default)
+        % out % <outfile>                        (default is infile_mcf)
+        cost = 'normmi'; % {mutualinfo,woods,corratio,normcorr,normmi,leastsquares} (default is normcorr)
+        bins % <number of histogram bins>        (default is 256)
+        dof = 12; % <number of transform dofs>   (default is 6)
+        refvol % <number of reference volume>    (default is no_vols/2)- registers to (n+1)th volume in series
+        reffile % <filename>                     use a separate 3d image file as the target for registration (overrides refvol option)
+        scaling % <num>                          (6.0 is default)
+        smooth % <num>                           (1.0 is default - controls smoothing in cost function)
+        rotation % <num>                         specify scaling factor for rotation optimization tolerances
+        verbose % <num>                          (0 is least and default)
         stages = 3; % <number of search levels>  (default is 3 - specify 4 for final sinc interpolation)
-        fov % <num>                         (default is 20mm - specify size of field of view when padding 2d volume)
-        % 2d                                % Force padding of volume
-        sinc_final                        % (applies final transformations using sinc interpolation)
-        spline_final                      % (applies final transformations using spline interpolation)
-        nn_final                          % (applies final transformations using Nearest Neighbour interpolation)
-        init % <filename>                   (initial transform matrix to apply to all vols)
-        gdt                               % (run search on gradient images)
-        edge                              % (run search on contour images)
-        meanvol = true;                   % register timeseries to mean volume (overrides refvol and reffile options)
-        stats   = true;                   % produce variance and std. dev. images
-        mats    = true;                   % save transformation matricies in subdirectory outfilename.mat
-        plots   = true;                   % save transformation parameters in file outputfilename.par
-        report                            % report progress to screen
+        fov % <num>                              (default is 20mm - specify size of field of view when padding 2d volume)
+        % 2d                                   % Force padding of volume
+        sinc_final                             % (applies final transformations using sinc interpolation)
+        spline_final                           % (applies final transformations using spline interpolation)
+        nn_final                               % (applies final transformations using Nearest Neighbour interpolation)
+        init % <filename>                        (initial transform matrix to apply to all vols)
+        gdt                                    % (run search on gradient images)
+        edge                                   % (run search on contour images)
+        meanvol = true;                        % register timeseries to mean volume (overrides refvol and reffile options)
+        stats   = true;                        % produce variance and std. dev. images
+        mats    = true;                        % save transformation matricies in subdirectory outfilename.mat
+        plots   = true;                        % save transformation parameters in file outputfilename.par
+        report                                 % report progress to screen
         help
     end
 
