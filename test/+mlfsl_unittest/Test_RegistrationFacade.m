@@ -14,7 +14,8 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
  	
 
 	properties
- 		testObj
+        registry
+ 		testFacade
         view = true
     end
     
@@ -24,18 +25,27 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
         
         sessionPath
         ecatPath
-        ho_fqfn
-        mask_fqfn
-        oc_fqfn
-        oo_fqfn
-        tr_fqfn        
-        aparcAseg_fqfn
-        T1_fqfn
-        aparcAsegOnHoManual_fqfn
-        T1OnHoManual_fqfn
         
-        talairachOnPet
-        talairachOnPet2
+        ho_fqfn
+        oo_fqfn
+        oc_fqfn
+        tr_fqfn  
+        mask_fqfn      
+        
+        aparcAseg_fqfn
+        aparcAsegOnHoManual_fqfn        
+        T1_fqfn
+        T1OnHoManual_fqfn
+        talairach_on_ho
+        talairach_on_oo
+        talairach_on_oc
+        talairach_on_tr
+        talairach_on_pet
+        
+        expectedReport
+        expectedReport2
+        expectedReport3
+        expectedReport4
     end
     
     methods % GET
@@ -86,29 +96,31 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
     end
 
 	methods (Test)
-        function test_registerTalairachOnPet(this)
-            prod = this.testObj.registerTalairachOnPet;            
-            top  = this.talairachOnPet;
-            this.verifyEqual(prod, top);
+        function test_registerTalairachWithPet(this)
+            prod = this.testFacade.registerTalairachWithPet;
+            
+            statsReport = this.testFacade.stats(prod);
+            this.verifyEqual(statsReport, this.expectedReport);
+            this.verifyEqual(prod.talairach_on_ho, this.talairach_on_ho);
+            this.verifyEqual(prod.talairach_on_oo, this.talairach_on_oo);
+            this.verifyEqual(prod.talairach_on_oc, this.talairach_on_oc);
+            this.verifyEqual(prod.talairach_on_tr, this.talairach_on_tr);
             if (this.view)
                 prod.view(top); 
             end
         end
         function test_registerTalairachOnPet_inverse(this)
-            prod = this.testObj.registerTalairachOnPet('inverse', true);            
-            top  = this.talairachOnPet2;
+            prod = this.testFacade.registerTalairachOnPet('inverse', true);            
+            top  = this.talairach_on_pet;
             this.verifyEqual(prod, top);
             if (this.view)
                 prod.view(top); 
             end
         end
-        function test_inverseTransformed(this)
+        function test_applyTransform(this)
             error('mlfourd_unittest:notImplemented', '');
         end
-        function test_mcflirted(this)
-            error('mlfourd_unittest:notImplemented', '');
-        end
-        function test_transformed(this)
+        function test_motionCorrect(this)
             error('mlfourd_unittest:notImplemented', '');
         end
 	end
@@ -122,8 +134,9 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
 
  	methods (TestMethodSetup)
 		function setupRegistrationFacadeTest(this)
- 			this.testObj = mlfsl.RegistrationFacade( ...
+ 			this.testFacade = mlfsl.RegistrationFacade( ...
                 this.cachedSessionData_, this.registrationBuilder_); % handle
+            this.addTeardown(@this.cleanUp);
  		end
     end
     
@@ -132,6 +145,11 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
     properties (Access = private)
         cachedSessionData_
         registrationBuilder_
+    end
+    
+    methods (Access = private)
+        function cleanUp(this)
+        end
     end
     
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy

@@ -18,7 +18,7 @@ classdef McflirtOptions < mlfsl.FslOptions
         % out % <outfile>                        (default is infile_mcf)
         cost = 'normmi'; % {mutualinfo,woods,corratio,normcorr,normmi,leastsquares} (default is normcorr)
         bins % <number of histogram bins>        (default is 256)
-        dof = 12; % <number of transform dofs>   (default is 6)
+        dof = 6; % <number of transform dofs>   (default is 6)
         refvol % <number of reference volume>    (default is no_vols/2)- registers to (n+1)th volume in series
         reffile % <filename>                     use a separate 3d image file as the target for registration (overrides refvol option)
         scaling % <num>                          (6.0 is default)
@@ -44,10 +44,10 @@ classdef McflirtOptions < mlfsl.FslOptions
 
     methods %% Set
 		function this = set.in(this, obj)
-			this.in = imcast(obj, 'fileprefix');
+			this.in = imcast(obj, 'fqfileprefix');
         end
 		function this = set.reffile(this, obj)
-			this.ref = imcast(obj, 'fileprefix');
+			this.reffile = imcast(obj, 'fqfileprefix');
 		end
     end 
 

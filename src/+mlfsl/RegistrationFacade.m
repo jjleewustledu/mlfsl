@@ -27,47 +27,46 @@ classdef RegistrationFacade < handle
         end
         function g = get.talairach(this)
             if (isempty(this.talairach_))
-                this.talairach_ = mlfourd.ImagingContext(this.sessionData_.T1_fqfn);
+                this.talairach_ = mlmr.MRImagingContext(this.sessionData_.T1_fqfn);
             end
             g = this.talairach_;
         end
         function g = get.pet(this)
-            g = mlfourd.ImagingContext( ...
-                { this.fdg this.gluc this.ho this.oo this.oc this.tr });
+            g = mlpet.PETImagingContext({ this.fdg this.gluc this.ho this.oo this.oc this.tr });
         end
         function g = get.fdg(this)
             if (isempty(this.fdg_))
-                this.fdg_ = mlfourd.ImagingContext(this.sessionData_.fdg_fqfn);
+                this.fdg_ = mlpet.PETImagingContext(this.sessionData_.fdg_fqfn);
             end
             g = this.fdg_;
         end
         function g = get.gluc(this)
             if (isempty(this.gluc_))
-                this.gluc_ = mlfourd.ImagingContext(this.sessionData_.gluc_fqfn);
+                this.gluc_ = mlpet.PETImagingContext(this.sessionData_.gluc_fqfn);
             end
             g = this.gluc_;
         end
         function g = get.ho(this)
             if (isempty(this.ho_))
-                this.ho_ = mlfourd.ImagingContext(this.sessionData_.ho_fqfn);
+                this.ho_ = mlpet.PETImagingContext(this.sessionData_.ho_fqfn);
             end
             g = this.ho_;
         end
         function g = get.oo(this)
             if (isempty(this.oo_))
-                this.oo_ = mlfourd.ImagingContext(this.sessionData_.oo_fqfn);
+                this.oo_ = mlpet.PETImagingContext(this.sessionData_.oo_fqfn);
             end
             g = this.oo_;
         end
         function g = get.oc(this)
             if (isempty(this.oc_))
-                this.oc_ = mlfourd.ImagingContext(this.sessionData_.oc_fqfn);
+                this.oc_ = mlpet.PETImagingContext(this.sessionData_.oc_fqfn);
             end
             g = this.oc_;
         end
         function g = get.tr(this)
             if (isempty(this.tr_))
-                this.tr_ = mlfourd.ImagingContext(this.sessionData_.tr_fqfn);
+                this.tr_ = mlpet.PETImagingContext(this.sessionData_.tr_fqfn);
             end
             g = this.tr_;
         end

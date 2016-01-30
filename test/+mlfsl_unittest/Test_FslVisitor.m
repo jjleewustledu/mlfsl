@@ -49,6 +49,27 @@ classdef Test_FslVisitor < matlab.unittest.TestCase
             this.verifyEqual(str(end-3:end), '2>&1');
             setenv('LOGGING', lg);
         end
+        
+        
+        
+        function test_fslstats(this)
+            [s,r] = this.fslBuilder.fslstats('t1_002', struct('E',''));
+            assertEqual(0, s, r);
+            assertElementsAlmostEqual(0.695402, str2double(r), r);
+        end
+        function test_fslhdParameter(this)
+            assertEqual( ...
+                         'Scanner Anat', ...
+                         this.fslBuilder.fslhdParameter( ...
+                         't1_002', 'sform_code_name'));
+        end
+        function test_fslcmd(this)
+            [s,r] = this.fslBuilder.fslcmd('fslhd', struct('x','t1_002'));
+            assertTrue(0 == s);
+            assertTrue( ...
+                mlio.TextIO.textfileStrcmp( ...
+                    this.fslcmdTextfile, strtrim(r)));
+        end
  	end
 
  	methods (TestClassSetup)
@@ -64,7 +85,15 @@ classdef Test_FslVisitor < matlab.unittest.TestCase
  		function setupFslVisitorTest(this)
             cd(this.testObj.workPath);
         end
- 	end
+    end
+    
+    %% PRIVATE
+    
+    methods (Access = private)
+        function fn = fslcmdTextfile(this)
+            fn = fullfile(this.fslPath, 'Test_fslBuilder_test_fslcmd.txt');
+        end
+    end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end

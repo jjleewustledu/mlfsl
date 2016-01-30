@@ -14,6 +14,13 @@ classdef MultispectralRegistrationBuilder < mlfsl.PrototypeAlignmentBuilder
  	end
 
 	methods 
+        function prod = registerSurjective(src, ref)
+        end
+        function prod = registerComposed(src, ref)
+        end
+        
+        
+        
         function this = align(this, nii, niiRef)
             if (isa(nii, 'mlpet.PETImagingContext'))
                 assert(isa(niiRef, 'mlmr.MRImagingContext'))

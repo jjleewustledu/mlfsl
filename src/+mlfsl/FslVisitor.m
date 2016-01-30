@@ -46,7 +46,9 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             
             import mlfsl.*;
             fns   = fileprefixes(fns);
-            if (~exist('optstrct','var')); optstrct = struct([]); end
+            if (~exist('optstrct','var'))
+                optstrct = struct([]); 
+            end
             [s,r,c] = FslVisitor.cmd('slices', optstrct, fns);
         end    
         function [s,r,c] = slicesdir(fns, optstrct)

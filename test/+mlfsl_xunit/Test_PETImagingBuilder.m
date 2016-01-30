@@ -49,95 +49,95 @@ classdef Test_PETImagingBuilder < TestCase
         end 
         
         %% TEST_LIGHTBOX
-%         function this = test_lightbox(this)
-%
-%             import mlfourd.*;
-%             if (~this.totest{6}) return; end
-%             cd(this.imaging.pet_path);
-%             CLIM = 0.45;
-%             
-%             petoef = mlfourd.NIfTI.load(['petoef_on_oef'  NIfTIInterface.FILETYPE_EXT]);
-%             figure
-%             montage(reshape(flip4d(petoef.img, 'xt'), [64 48 1 24]))
-%             colormap('jet')
-%             colorbar
-%             set(gca, 'CLim', [0 CLIM]);
-%             set(gca, 'FontSize', 14);
-%             title([this.imaging.pnum ' PET OEF 16 mm blur'], 'FontSize', 14);
-%             
-%             oefm   = mlfourd.NIfTI.load(['oefm'           NIfTIInterface.FILETYPE_EXT]);
-%             figure
-%             montage(reshape(flip4d(oefm.img, 'xt'), [64 48 1 24]))
-%             colormap('jet')
-%             colorbar
-%             set(gca, 'CLim', [0 CLIM]);
-%             set(gca, 'FontSize', 14);
-%             title([this.imaging.pnum ' MR OEF'], 'FontSize', 14);
-%             
-%             oefmgm = mlfourd.NIfTI.load(['oefm_g16petmsk' NIfTIInterface.FILETYPE_EXT]);
-%             figure
-%             montage(reshape(flip4d(oefmgm.img, 'xt'), [64 48 1 24]))
-%             colormap('jet')
-%             colorbar
-%             set(gca, 'CLim', [0 CLIM]);
-%             set(gca, 'FontSize', 14);
-%             title([this.imaging.pnum ' MR OEF 16 mm blur'], 'FontSize', 14);
-%         end % function test_lightbox
-%         
-%         function this = test_cmro2(this)
-%             if (~this.totest{5}) return; end
-%             [nii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum);
-%             if (isNIfTI(this.cbfnii)); converter.cbfnii = this.cbfnii; end
-%             if (isNIfTI(this.cbvnii)); converter.cbvnii = this.cbvnii; end
-%             if (isNIfTI(this.oefnii)); converter.oefnii = this.oefnii; end
-%             this.cmro2nii = converter.make_cmro2nii;
-%             disp(['test_cmro2:   displaying CMRO2 from ' this.cmro2nii.fileprefix]);
-%             cmro2img     = dip_image(this.cmro2nii.img);
-%             dipshow(cmro2img, 'percentile', 'grey')
-%             disp(['saving '         this.imaging.pet_path 'petcmro2' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%             save_nii(this.cmro2nii, [this.imaging.pet_path 'petcmro2' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%         end % function test_cmro2
-%         
-%         function this = test_oef(this)
-%             if (~this.totest{4}) return; end
-%             [nii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum);
-%             if (isNIfTI(this.cbfnii)); converter.cbfnii = this.cbfnii; end
-%             if (isNIfTI(this.cbvnii)); converter.cbvnii = this.cbvnii; end
-%             this.oefnii = converter.make_oefnii;
-%             disp(['test_oef:   displaying OEF from ' this.oefnii.fileprefix]);
-%             oefimg     = dip_image(this.oefnii.img);
-%             dipshow(oefimg, 'percentile', 'grey')
-%             disp(['saving '       this.imaging.pet_path 'petoef' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%             save_nii(this.oefnii, [this.imaging.pet_path 'petoef' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%             msknii            = this.oefnii;
-%             msknii.img        = double(dip_image(msknii.img) > 0);
-%             msknii.untouch    = 0;
-%             msknii.fileprefix = 'petmsk';
-%             save_nii(msknii, [this.imaging.pet_path msknii.fileprefix NIfTIInterface.FILETYPE_EXT]);
-%         end % function test_oef
-%         
-%         
-%         function this = test_cbv(this)
-%             if (~this.totest{2}) return; end
-%             [this.cbvnii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum, 'cbv');
-%             disp(['test_cbv:   displaying CBV from ' this.cbvnii.fileprefix]);
-%             dipshow(dip_image(this.cbvnii.img), 'percentile', 'grey')
-%             disp(['saving '       this.imaging.pet_path 'petcbv' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%             save_nii(this.cbvnii, [this.imaging.pet_path 'petcbv' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%         end % function test_cbv
-%         
-%         function this = test_mtt(this)
-%             if (~this.totest{3}) return; end
-%             [nii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum);
-%             if (isNIfTI(this.cbfnii)); converter.cbfnii = this.cbfnii; end
-%             if (isNIfTI(this.cbvnii)); converter.cbvnii = this.cbvnii; end
-%             this.mttnii = converter.make_mttnii;
-%             disp(['test_mtt:   displaying MTT from ' this.mttnii.fileprefix]);
-%             mttimg     = dip_image(this.mttnii.img);
-%             dipshow(mttimg, 'percentile', 'grey')
-%             disp(['saving '       this.imaging.pet_path 'petmtt' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%             save_nii(this.mttnii, [this.imaging.pet_path 'petmtt' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
-%         end % function test_mtt  
+        function this = test_lightbox(this)
+
+            import mlfourd.*;
+            if (~this.totest{6}) return; end
+            cd(this.imaging.pet_path);
+            CLIM = 0.45;
+            
+            petoef = mlfourd.NIfTI.load(['petoef_on_oef'  NIfTIInterface.FILETYPE_EXT]);
+            figure
+            montage(reshape(flip4d(petoef.img, 'xt'), [64 48 1 24]))
+            colormap('jet')
+            colorbar
+            set(gca, 'CLim', [0 CLIM]);
+            set(gca, 'FontSize', 14);
+            title([this.imaging.pnum ' PET OEF 16 mm blur'], 'FontSize', 14);
+            
+            oefm   = mlfourd.NIfTI.load(['oefm'           NIfTIInterface.FILETYPE_EXT]);
+            figure
+            montage(reshape(flip4d(oefm.img, 'xt'), [64 48 1 24]))
+            colormap('jet')
+            colorbar
+            set(gca, 'CLim', [0 CLIM]);
+            set(gca, 'FontSize', 14);
+            title([this.imaging.pnum ' MR OEF'], 'FontSize', 14);
+            
+            oefmgm = mlfourd.NIfTI.load(['oefm_g16petmsk' NIfTIInterface.FILETYPE_EXT]);
+            figure
+            montage(reshape(flip4d(oefmgm.img, 'xt'), [64 48 1 24]))
+            colormap('jet')
+            colorbar
+            set(gca, 'CLim', [0 CLIM]);
+            set(gca, 'FontSize', 14);
+            title([this.imaging.pnum ' MR OEF 16 mm blur'], 'FontSize', 14);
+        end % function test_lightbox
+        
+        function this = test_cmro2(this)
+            if (~this.totest{5}) return; end
+            [nii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum);
+            if (isNIfTI(this.cbfnii)); converter.cbfnii = this.cbfnii; end
+            if (isNIfTI(this.cbvnii)); converter.cbvnii = this.cbvnii; end
+            if (isNIfTI(this.oefnii)); converter.oefnii = this.oefnii; end
+            this.cmro2nii = converter.make_cmro2nii;
+            disp(['test_cmro2:   displaying CMRO2 from ' this.cmro2nii.fileprefix]);
+            cmro2img     = dip_image(this.cmro2nii.img);
+            dipshow(cmro2img, 'percentile', 'grey')
+            disp(['saving '         this.imaging.pet_path 'petcmro2' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+            save_nii(this.cmro2nii, [this.imaging.pet_path 'petcmro2' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+        end % function test_cmro2
+        
+        function this = test_oef(this)
+            if (~this.totest{4}) return; end
+            [nii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum);
+            if (isNIfTI(this.cbfnii)); converter.cbfnii = this.cbfnii; end
+            if (isNIfTI(this.cbvnii)); converter.cbvnii = this.cbvnii; end
+            this.oefnii = converter.make_oefnii;
+            disp(['test_oef:   displaying OEF from ' this.oefnii.fileprefix]);
+            oefimg     = dip_image(this.oefnii.img);
+            dipshow(oefimg, 'percentile', 'grey')
+            disp(['saving '       this.imaging.pet_path 'petoef' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+            save_nii(this.oefnii, [this.imaging.pet_path 'petoef' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+            msknii            = this.oefnii;
+            msknii.img        = double(dip_image(msknii.img) > 0);
+            msknii.untouch    = 0;
+            msknii.fileprefix = 'petmsk';
+            save_nii(msknii, [this.imaging.pet_path msknii.fileprefix NIfTIInterface.FILETYPE_EXT]);
+        end % function test_oef
+        
+        
+        function this = test_cbv(this)
+            if (~this.totest{2}) return; end
+            [this.cbvnii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum, 'cbv');
+            disp(['test_cbv:   displaying CBV from ' this.cbvnii.fileprefix]);
+            dipshow(dip_image(this.cbvnii.img), 'percentile', 'grey')
+            disp(['saving '       this.imaging.pet_path 'petcbv' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+            save_nii(this.cbvnii, [this.imaging.pet_path 'petcbv' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+        end % function test_cbv
+        
+        function this = test_mtt(this)
+            if (~this.totest{3}) return; end
+            [nii converter] = mlfourd.PETImagingBuilder.PETfactory(this.imaging.pnum);
+            if (isNIfTI(this.cbfnii)); converter.cbfnii = this.cbfnii; end
+            if (isNIfTI(this.cbvnii)); converter.cbvnii = this.cbvnii; end
+            this.mttnii = converter.make_mttnii;
+            disp(['test_mtt:   displaying MTT from ' this.mttnii.fileprefix]);
+            mttimg     = dip_image(this.mttnii.img);
+            dipshow(mttimg, 'percentile', 'grey')
+            disp(['saving '       this.imaging.pet_path 'petmtt' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+            save_nii(this.mttnii, [this.imaging.pet_path 'petmtt' this.imaging.pet_ref_series NIfTIInterface.FILETYPE_EXT]);
+        end % function test_mtt  
 
         function this = Test_PETImagingBuilder(varargin)
  			this = this@TestCase(varargin{:}); 
