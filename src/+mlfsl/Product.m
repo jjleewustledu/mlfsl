@@ -39,7 +39,7 @@ classdef Product
             assert(~isempty(this.opts), 'mlfsl.Product.get.omat:  opts is empty');
             if (isfield(this.opts, 'omat'))
                 mat = this.opts.omat; return; end
-            mat = mlfsl.FslVisitor.xfmName( ...
+            mat = mlfsl.FslVisitor.transformFilename( ...
                 fileprefix(this.opts.in), fileprefix(this.opts.ref));
         end
         function fn   = get.out(this)

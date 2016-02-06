@@ -1,3 +1,4 @@
+run(mlpipeline_unittest.Test_StudyDataSingleton)
 
 run(mlfsl_unittest.Test_RegistrationFacade)
 run(mlfsl_unittest.Test_KineticsFacade)
@@ -8,6 +9,10 @@ run(mlfsl_unittest.Test_ModelLayer)
 run(mlfsl_unittest.Test_KineticsModelLayer)
 run(mlfsl_unittest.Test_FlirtVisitor)
 run(mlfsl_unittest.Test_FlirtVisitor)
+
+run(mlfsl_unittest.Test_MultispectralRegistrationBuilder)
+run(mlpet_unittest.Test_PETRegistrationBuilder)
+run(mlpet_unittest.Test_MRRegistrationBuilder)
 
 run(mlfsl_unittest.Test_MultispectralAlignmentBuilder)
 run(mlarbelaez_unittest.Test_GluTAlignmentDirector)

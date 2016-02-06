@@ -69,9 +69,6 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             [s,r,c] = FslVisitor.cmd('slicesdir', optstrct, fns);
         end
         
-        % See also:  PipelineVisitor.thisOnThatImageFilename, 
-        %            PipelineVisitor.thisOnThatExtFilename 
-        
         function [s,r,c] = view(fns)
             %% FSLVIEW launches fslview with NIfTI files named in the filelist
             %  Usage:   [sta, std] = obj.fslview( 'file1')
@@ -84,28 +81,34 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             fns = ensureCell(  fns);    
             if (~exist('optstrct','var')); optstrct = struct([]); end
             fns{length(fns)+1} = ' &';
-            [s,r,c] = FslVisitor.cmd('fslview', optstrct, fns);
+            [s,r,c] = FslVisitor.cmd('freeview', optstrct, fns);
         end 
-        function fqfn    = xfmName(varargin)
+        function fqfn    = transformFilename(varargin)
             if (1 == length(varargin))
                 fqfn = filename( ...
-                       fileprefix(varargin{1}), mlfsl.FlirtVisitor.XFM_SUFFIX);
+                       fileprefix( ...
+                       imcast(varargin{1}, 'char')), mlfsl.FlirtVisitor.XFM_SUFFIX);
                 return
             end
             
-            import mlchoosers.* mlfsl.*;
-            namstr = ImagingChoosers.coregNameStruct(varargin{:});
-            fqfn = fullfile(namstr.path, ...
-                           [namstr.pre FslRegistry.INTERIMAGE_TOKEN namstr.post FlirtVisitor.XFM_SUFFIX]);
+            import mlfsl.*;
+            nameStruct = mlpipeline.PipelineVisitor.coregNameStruct(varargin{:});
+            fqfn       = fullfile(nameStruct.path, ...
+                                 [nameStruct.pre FslRegistry.INTERIMAGE_TOKEN nameStruct.post FlirtVisitor.XFM_SUFFIX]);
         end
-        function fqfn    = xfmConcatName(fqfn1, fqfn2)
-            fqfn = mlfsl.FslVisitor.xfmName(fqfn1, fqfn2);
+        function fqfn    = concatTransformFilename(fqfn1, fqfn2)
+            fqfn = mlfsl.FslVisitor.transformFilename(fqfn1, fqfn2);
         end
-        function fqfn    = xfmInverseName(fqfn)
-            assert(ischar(fqfn));
-            nameStruct = mlchoosers.ImagingChoosers.coregNameStruct(fqfn);
-            fqfn       = fullfile(nameStruct.path, [nameStruct.post '_on_' nameStruct.pre mlfsl.FlirtVisitor.XFM_SUFFIX]);
+        function fqfn    = inverseTransformFilename(fqfn)
+            import mlfsl.*;
+            nameStruct = mlpipeline.PipelineVisitor.coregNameStruct(fqfn);
+            fqfn       = fullfile(nameStruct.path, ...
+                                 [nameStruct.post FslRegistry.INTERIMAGE_TOKEN nameStruct.pre FlirtVisitor.XFM_SUFFIX]);
         end
+
+        % See also:  PipelineVisitor.thisOnThatImageFilename, 
+        %            PipelineVisitor.thisOnThatExtFilename 
+        
     end
     
     methods

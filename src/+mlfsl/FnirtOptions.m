@@ -76,7 +76,7 @@ classdef FnirtOptions < mlfsl.FslOptions
 			this.in = imcast(obj, 'fqfileprefix');
         end
 		function this = set.aff(this, obj)
-			this.aff = this.xfmName(obj);
+			this.aff = this.transformFilename(obj);
 		end
         function this = set.inwarp(this, obj)
 			this.inwarp = imcast(obj, 'fqfileprefix');

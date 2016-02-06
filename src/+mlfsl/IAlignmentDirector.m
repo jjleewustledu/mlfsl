@@ -41,7 +41,7 @@ classdef (Abstract) IAlignmentDirector
             prds = [];
         end
         
-        function prd  = motionCorrect(~)
+        function prd  = directMotionCorrection(~)
             prd = [];
         end
         function prd  = meanvol(~)

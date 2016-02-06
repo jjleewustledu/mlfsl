@@ -94,8 +94,8 @@ classdef AlignmentDirectorDecorator < mlfsl.IAlignmentDirector
             prds = this.component_.alignThenApplyXfm(varargin{:});
         end
         
-        function prd  = motionCorrect(this, varargin)
-            prd = this.component_.motionCorrect(varargin{:});
+        function prd  = directMotionCorrection(this, varargin)
+            prd = this.component_.directMotionCorrection(varargin{:});
         end
         function prd  = meanvol(this, nii)
             prd = this.component_.meanvol(nii);

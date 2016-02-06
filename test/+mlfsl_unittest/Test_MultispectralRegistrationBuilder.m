@@ -14,78 +14,154 @@ classdef Test_MultispectralRegistrationBuilder < matlab.unittest.TestCase
  	
 
 	properties
-        mr
-        mrOnPet
-        pet
-        petSumt
-        sessionPath
- 		testObj
- 	end
-
+ 		registry
+        studyData
+        sessionData
+ 		mrb
+        
+        orig
+        ho
+        ho_sumt
+        t1_small
+        t1_small_fqfn
+        
+        view = false
+    end
+    
 	methods (Test)
  		function test_mr(this)
-            this.assertTrue(isa(this.mr, 'mlmr.MRImagingContext'));
+            this.assertTrue(isa(this.orig, 'mlmr.MRImagingContext'));
         end
- 		function test_pet(this)
-            this.assertTrue(isa(this.pet, 'mlpet.PETImagingContext'));
+ 		function test_ho(this)
+            this.assertTrue(isa(this.ho, 'mlpet.PETImagingContext'));
         end
-        function test_alignPET2MR(this)
-            this.testObj = this.testObj.align(this.petSumt, this.mr);
-            p = this.testObj.product;
-            this.verifyEqual(p.niftid.entropy,             0.940927831691311, 'RelTol', 1e-12);
-            this.verifyEqual(sum(sum(sum(p.niftid.img))), -2723491237.44,     'RelTol', 1e-12);
+ 		function test_ho_sumt(this)
+            this.assertTrue(isa(this.ho_sumt, 'mlpet.PETImagingContext'));
         end
-        function test_alignMR2PET(this)
-            this.testObj = this.testObj.align(this.mr, this.petSumt);
-            p = this.testObj.product;
-            this.verifyEqual(p.niftid.entropy,            0.890441152357043, 'RelTol', 1e-12);
-            this.verifyEqual(sum(sum(sum(p.niftid.img))), 27280699,          'RelTol', 1e-7);
+        function test_registerBijective3D_mr2pet(this)
+            import mlpet.* mlmr.*;
+            this.mrb.sourceImage    =  MRImagingContext(this.t1_small_fqfn);
+            this.mrb.referenceImage = PETImagingContext(this.sessionData.tr_fqfn);
+            this.mrb                = this.mrb.register;
+            prod                    = this.mrb.product;            
+            this.verifyIC(prod, 0.941518966054972, 96.7990898329575, 't1_default_on_p7686tr1_01_919110fwhh')
+            if (this.view)
+                prod.view(this.mrb.sourceImage, ...
+                          this.mrb.referenceImage, ...
+                          this.mrb.sourceWeight, ...
+                          this.mrb.referenceWeight);
+            end
         end
-        function test_alignByInverseTransform(this)
-            this.testObj = this.testObj.alignByInverseTransform(this.petSumt, this.mr);
-            p = this.testObj.product;
-            this.verifyEqual(p.niftid.entropy,            0.941728769775346, 'RelTol', 1e-12);
-            this.verifyEqual(sum(sum(sum(p.niftid.img))), -2700759711.38535, 'RelTol', 1e-12);
+        function test_registerBijective3D_pet2mr(this)
+            import mlpet.* mlmr.*;
+            this.mrb.sourceImage    = PETImagingContext(this.sessionData.oc_fqfn);
+            this.mrb.referenceImage =  MRImagingContext(this.t1_small_fqfn);
+            this.mrb                = this.mrb.register;
+            prod                    = this.mrb.product;
+            this.verifyIC(prod, 0.999314623985113, 335.617793544018, 'p7686oc1_03_on_ho_meanvol_default')
+            if (this.view)
+                prod.view(this.mrb.sourceImage, ...
+                          this.mrb.referenceImage, ...
+                          this.mrb.sourceWeight, ...
+                          this.mrb.referenceWeight);
+            end
         end
-        function test_alignByInverseTransform2(this)
-            this.testObj = this.testObj.alignByInverseTransform(this.mr, this.petSumt);
-            p = this.testObj.product;
-            this.verifyEqual(p.niftid.entropy,            0.8901370869198, 'RelTol', 1e-12);
-            this.verifyEqual(sum(sum(sum(p.niftid.img))), 27290361,        'RelTol', 1e-7);
+        function test_registerBijective4D(this)
+            import mlpet.* mlmr.*;
+            this.mrb.sourceImage    = PETImagingContext(this.sessionData.ho_fqfn);
+            this.mrb.referenceImage =  MRImagingContext(this.t1_small_fqfn);
+            this.mrb                = this.mrb.register;
+            prod                    = this.mrb.product;
+            this.verifyIC(prod, 0.985157164151474, 131.29401255791, 'p7686ho1_on_ho_meanvol_default')
+            if (this.view)
+                prod.view(this.mrb.sourceImage, ...
+                          this.mrb.referenceImage, ...
+                          this.mrb.sourceWeight, ...
+                          this.mrb.referenceWeight);
+            end
+        end
+        function test_registerInjective3D(this)
+            import mlpet.* mlmr.*;
+            this.mrb.sourceImage    = PETImagingContext(this.ho_sumt);
+            this.mrb.referenceImage =  MRImagingContext(this.orig);
+            this.mrb                = this.mrb.register;
+            prod                    = this.mrb.product;
+            this.verifyIC(prod, 0.942524162757309, 2745.76260010973, 'p7686ho1_sumt_on_orig')
+            if (this.view)
+                prod.view(this.mrb.referenceImage, ...
+                          this.mrb.referenceWeight);
+            end
+        end
+        function test_registerSurjective3D(this)
+            import mlpet.* mlmr.*;
+            this.mrb.sourceImage    =  MRImagingContext(this.orig);
+            this.mrb.referenceImage = PETImagingContext(this.ho_sumt);
+            this.mrb                = this.mrb.register;
+            prod                    = this.mrb.product;
+            this.verifyIC(prod, 0.967830143951345, 43.6223512676426, 'orig_on_p7686ho1_sumt_919110fwhh')
+            if (this.view)
+                prod.view(this.mrb.referenceImage, ...
+                          this.mrb.referenceWeight);
+            end
+        end
+        function test_registerSurjective4D(this)
+            import mlpet.* mlmr.*;
+            this.mrb.sourceImage    =  MRImagingContext(this.orig);
+            this.mrb.referenceImage = PETImagingContext(this.ho);
+            this.mrb                = this.mrb.register;
+            prod                    = this.mrb.product;
+            this.verifyIC(prod, 0.967830143951345, 43.6223512676426, 'orig_on_p7686ho1_sumt_919110fwhh')
+            if (this.view)
+                prod.view(this.mrb.referenceImage, ...
+                          this.mrb.referenceWeight);
+            end
         end
  	end
 
  	methods (TestClassSetup)
  		function setupMultispectralAlignmentBuilder(this)
- 			import mlfsl.* mlfourd.*;
-            this.sessionPath = fullfile(getenv('MLUNIT_TEST_PATH'), 'cvl', 'np755', 'mm01-020_p7377_2009feb5', '');
+            this.registry = mlpet.PETRegistry.instance('initialize');
+            this.studyData = this.registry.testStudyData('test_derdeyn');
+            iter = this.studyData.createIteratorForSessionData;
+            this.sessionData = iter.next;
+            disp(this.sessionData);
+ 			this.mrb_ = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
+            
+ 			import mlfourd.*;
+            this.t1_small_fqfn = fullfile(this.sessionData.fslPath, 't1_default_on_ho_meanvol_default.nii.gz');
+            this.t1_small = mlmr.MRImagingContext(NumericalNIfTId.load(this.t1_small_fqfn));
+            this.ho      = mlpet.PETImagingContext(NumericalNIfTId.load(this.sessionData.ho_fqfn));
+            this.ho_sumt = this.ho.timeSummed;
+            this.orig     = mlmr.MRImagingContext(NumericalNIfTId.load(this.sessionData.orig_fqfn));
  		end
  	end
 
  	methods (TestMethodSetup)
-        function setupMultispectralAlignmentBuilderTest(this)
- 			import mlfsl.* mlfourd.*;
-            this.pet = mlpet.PETImagingContext( ...
-                NumericalNIfTId.load( ...
-                fullfile(this.sessionPath, 'ECAT_EXACT', 'pet', 'p7377ho1_frames', 'p7377ho1.nii.gz')));
-            this.petSumt = mlpet.PETImagingContext( ...
-                NumericalNIfTId.load( ...
-                fullfile(this.sessionPath, 'ECAT_EXACT', 'pet', 'p7377ho1_frames', 'p7377ho1_sumt.nii.gz')));
-            this.mr = mlmr.MRImagingContext( ...
-                NumericalNIfTId.load( ...
-                fullfile(this.sessionPath, 'mri', 'orig.mgz')));
-            this.mrOnPet = mlmr.MRImagingContext( ...
-                NumericalNIfTId.load( ...
-                fullfile(this.sessionPath, 'mri', 'orig_on_p7377ho1.nii.gz')));
- 			this.testObj  = MultispectralAlignmentBuilder('sessionPath', this.sessionPath);
-            if (~lexist(fullfile(this.sessionPath, 'mri', 'orig.nii.gz')))
-                mlbash(sprintf('mri_convert %s %s', ...
-                    fullfile(this.sessionPath, 'mri', 'orig.mgz'), ...
-                    fullfile(this.sessionPath, 'mri', 'orig.nii.gz')));
-            end
+        function setupMultispectralAlignmentBuilderTest(this)            
+ 			this.mrb = this.mrb_;
+            this.addTeardown(@this.cleanupFiles);
         end
- 	end
+    end
+        
+    %% PRIVATE
 
+	properties (Access = private)
+ 		mrb_
+    end
+    
+    methods (Access = private)
+        function cleanupFiles(this)
+            deleteExisting(this.mrb.sourceWeight);
+            deleteExisting(this.mrb.referenceWeight);
+        end
+        function verifyIC(this, ic, e, m, fp)
+            this.assumeInstanceOf(ic, 'mlfourd.ImagingContext');
+            this.verifyEqual(ic.niftid.entropy, e, 'RelTol', 1e-6);
+            this.verifyEqual(dipmad(ic.niftid.img), m, 'RelTol', 1e-4);
+            this.verifyEqual(ic.fileprefix, fp); 
+        end
+    end
+    
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end
 

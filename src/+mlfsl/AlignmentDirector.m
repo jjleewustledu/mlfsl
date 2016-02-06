@@ -184,7 +184,7 @@ classdef AlignmentDirector < mlfsl.IAlignmentDirector
             prd                   = this.builder_.product;
         end
         
-        function [prd,this]  = motionCorrect(this, timedep)
+        function [prd,this]  = directMotionCorrection(this, timedep)
             this.product           = timedep;
             this.builder_ = this.builder_.buildMotionCorrected;
             prd                    = this.builder_.product;

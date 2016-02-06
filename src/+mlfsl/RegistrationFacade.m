@@ -10,6 +10,7 @@ classdef RegistrationFacade < handle
  	
     properties (Dependent)
         sessionData
+        registrationBuilder
         
         talairach
         pet
@@ -24,6 +25,9 @@ classdef RegistrationFacade < handle
     methods %% GET
         function g = get.sessionData(this)
             g = this.sessionData_;
+        end
+        function g = get.registrationBuilder(this)
+            g = this.registrationBuilder_;
         end
         function g = get.talairach(this)
             if (isempty(this.talairach_))
@@ -81,30 +85,90 @@ classdef RegistrationFacade < handle
             %  @return this is a facade pattern for imaging alignment.
 
             ip = inputParser;
-            addParameter(ip, 'sessionData', [], @(x) isa(x, mlpipeline.SessionData));
+            addParameter(ip, 'sessionData',         [], @(x) isa(x, 'mlpipeline.SessionData'));
+            addParameter(ip, 'registrationBuilder', [], @(x) isa(x, 'mlfsl.AbstractRegistrationBuilder') || isempty(x));
             parse(ip, varargin{:});
             
-            this.sessionData_ = ip.Results.sessionData;
+            this.sessionData_         = ip.Results.sessionData;
+            this.registrationBuilder_ = ip.Results.registrationBuilder;
         end
         
-        function this = applyTransform(this, varargin)
-            ip = inputParser;
-            addParameter(ip, 'interpolation', 'trilinear', @this.isinterpolation);
-            parse(ip, varargin{:});
+        
+        
+        
+        function prod = register(this, varargin)
+            assert(length(varargin) > 1);
+            
+            images = varargin;
+            for idx = 1:length(images)
+                if (~isa(images{idx}, 'mlfourd.ImagingContext'))
+                    images{idx} = mlfourd.ImagingContext(images{idx});
+                end
+            end
+            
+            mrb = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
+            for idx = 1:length(images)-1
+                mrb.sourceImage = images{idx};
+                mrb.referenceImage = images{idx+1};
+                mrb = mrb.register;
+                images{idx+1} = mrb.product;
+                images{idx+1}.ensureSaved;
+            end
+            prod = images{end};
         end
-        function this = motionCorrectPet(this, varargin)
-            ip = inputParser;
-            addParameter(ip, 'sourceImage');
-            addParameter(ip, 'indirectBlurring', [], @isnumeric);
-            parse(ip, varargin{:});
+        function prod = transform(this, src, xfms, refs)
+            assert(isa(src, 'mlfourd.ImagingContext'));
+            assert(length(xfms) == length(refs));
+            cellfun(@(x) assert(strcmp(x(end-3:end), mlfsl.FlirtVisitor.XFM_SUFFIX)), xfms);
+            cellfun(@(x) assert(lexist(x, 'file')), xfms);
+            cellfun(@(x) assert(isa(x, 'mlfourd.ImagingContext')), refs);
+            
+            mrb  = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
+            prod = src;
+            for idx = 1:length(xfms)
+                mrb.xfm = xfms{idx};
+                mrb.sourceImage = prod;
+                mrb.referenceImage = refs{idx};
+                mrb  = mrb.transformTrilinear;
+                prod = mrb.product;
+            end
         end
+        function xfm  = transformation(this, varargin)
+            %% TRANSFORMATION 
+            %  @param arg[, arg2[, ...]] are each imaging or filesystem objects.
+            %  @returns xfm which is the filename of a transformation corresponding to the
+            %  transformation sequence implied by arg, arg2, ....  Transformations are created when needed
+            %  if at all possible.  However, a single arg is returned as a transformation filename without 
+            %  other interventions.
+            
+            import mlfsl.*;   
+            assert(~isempty(varargin)); 
+            %xfms    = varargin;
+            xfms{1} = FslVisitor.transformFilename(varargin{1});
+            for a = 2:length(varargin)                
+                xfms{a} = FslVisitor.transformFilename(xfms{a-1}, varargin{a});
+                if (~lexist(xfms{a}, 'file'))
+                    rb = this.registrationBuilder;
+                    rb.sourceImage    = this.ensureImagingContext(varargin{a-1});
+                    rb.referenceImage = this.ensureImagingContext(varargin{a});
+                    rb = rb.register;
+                    rb.product.ensureSaved;
+                    xfms{a} = rb.xfm;
+                end
+            end
+            xfms(1) = [];
+            xfm = this.concatTransformations(xfms{:});
+        end
+        
+        
+        
         function prod = registerTalairachWithPet(this)
             %% REGISTERTALAIRACHWITHPET
             %  @return prod is a struct with products as fields.
             
             import mlfsl.*;
             msrb = MultispectralRegistrationBuilder(this.sessionData);
-            prb  = PetRegistrationBuilder(this.sessionData);
+            prb  = PETRegistrationBuilder(this.sessionData);
             
             prod.talairach = this.talairach;
             prod.petAtlas  = this.pet.atlas;
@@ -136,7 +200,8 @@ classdef RegistrationFacade < handle
     %% PRIVATE
     
     properties (Access = private)
-        sessionData_        
+        sessionData_
+        registrationBuilder_
         
         talairach_
         fdg_
@@ -147,19 +212,24 @@ classdef RegistrationFacade < handle
         tr_
     end
     
-    methods (Static, Access = private) % TO DO:  move to builder classes
-        function tf = iscost(c)
-            tf = lstrfind(c, {'mutualinfo' 'corratio' 'normcorr' 'normmi' 'leastsq' 'labeldiff' 'bbr'});
+    methods (Access = private)
+        function ic  = ensureImagingContext(~, ic)
+            if (isa(ic, 'mlfourd.ImagingContext'))
+                return
+            end
+            if (ischar(ic))
+                ic = mlfourd.ImagingContext(myfileprefix(ic));
+                return
+            end
+            ic = mlfourd.ImagingContext(ic);
         end
-        function tf = iscost_mc(c)
-            tf = lstrfind(c, {'mutualinfo' 'woods' 'corratio' 'normcorr' 'normmi' 'leastsquares'});
+        function xfm = concatTransformations(this, varargin)
+            rb  = this.registrationBuilder;
+            rb  = rb.concatTransforms(varargin{:});
+            xfm = rb.xfm;
         end
-        function tf = isinterpolation(int)
-            tf = lstrfind(int, {'trilinear' 'nearestneighbour' 'sinc' 'spline'});
-        end
-        % 
     end
-
+    
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end
 

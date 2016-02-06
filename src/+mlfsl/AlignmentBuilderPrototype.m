@@ -116,7 +116,7 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             
             this = this.buildVisitor.alignMultispectral(this);             
             this.sourceImage = ip.Results.src.clone;   
-            this = this.buildVisitor.transformBuilder(this);
+            this = this.buildVisitor.transformTrilinear(this);
         end
         function this = buildInverseAligned(this, im, ref)
             this.sourceImage = ref.clone;
@@ -126,7 +126,7 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             this = this.buildVisitor.inverseTransformBuilder(this);            
             this.sourceImage = im.clone;
             this.referenceImage = ref;
-            this = this.buildVisitor.transformBuilder(this);
+            this = this.buildVisitor.transformTrilinear(this);
         end
         function this = buildTransformed(this, varargin)
             ip = inputParser;
@@ -139,7 +139,7 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             this.referenceImage = ip.Results.ref;
             this.xfm            = ip.Results.xfm;
             
-            this = this.buildVisitor.transformBuilder(this);
+            this = this.buildVisitor.transformTrilinear(this);
         end
         function this = buildInverseTransformed(this, im, ref, xfm)
             this.sourceImage = ref.clone;
@@ -149,11 +149,11 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             this = this.buildVisitor.inverseTransformBuilder(this);            
             this.sourceImage = im.clone;
             this.referenceImage = ref;
-            this = this.buildVisitor.transformBuilder(this);
+            this = this.buildVisitor.transformTrilinear(this);
         end
         
         function this = buildFlirted(this) %% DEPRECATED
-            this = this.buildVisitor.align6DOF(this);
+            this = this.buildVisitor.alignMultispectral(this);
         end 
         function this = buildMeanVolume(this)
             niid = imcast(this.sourceImage, 'mlfourd.NIfTId');            

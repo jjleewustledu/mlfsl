@@ -52,7 +52,7 @@ classdef FastOptions < mlfsl.FslOptions
                 s = sprintf('%s --%s %s', s, fldname, val); end
         end
 		function this = set.a(this, val)
-			this.a = this.xfmName(val);
+			this.a = this.transformFilename(val);
 		end
 		function this = set.A(this, vals)
 			vals = ensureCell(vals);

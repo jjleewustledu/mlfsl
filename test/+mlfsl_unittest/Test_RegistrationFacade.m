@@ -16,7 +16,7 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
 	properties
         registry
  		testFacade
-        view = true
+        view = false
     end
     
     properties (Dependent)
@@ -24,18 +24,31 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
         registrationBuilder
         
         sessionPath
-        ecatPath
+        ecatPath     
+        petPath
         
         ho_fqfn
         oo_fqfn
         oc_fqfn
         tr_fqfn  
-        mask_fqfn      
-        
+        mask_fqfn        
         aparcAseg_fqfn
         aparcAsegOnHoManual_fqfn        
         T1_fqfn
-        T1OnHoManual_fqfn
+        T1OnHo_fqfn
+        t2_fqfn
+        
+        ho
+        oo
+        oc
+        tr
+        mask
+        aparcAseg
+        aparcAsegOnHoManual
+        T1
+        T1OnHo
+        t2
+        
         talairach_on_ho
         talairach_on_oo
         talairach_on_oc
@@ -50,14 +63,14 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
     
     methods % GET
         function g = get.sessionData(~)
-            sds = mlderdeyn.StudyDataSingleton.instance('initialize');
+            sds = mlderdeyn.TestDataSingleton.instance('initialize');
             iter = sds.createIteratorForSessionData;
             iter.reset;
             assert(iter.hasNext);
             g = iter.next;
         end
         function g = get.registrationBuilder(this)
-            g = mlfsl.MultispectralRegistrationBuilder(this.sessionData);
+            g = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
         end
         
         function g = get.sessionPath(~)
@@ -65,6 +78,9 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
         end
         function g = get.ecatPath(this)
             g = fullfile(this.sessionPath, 'ECAT_EXACT', '');
+        end
+        function g = get.petPath(this)
+            g = fullfile(this.ecatPath, 'pet', '');
         end
         function g = get.ho_fqfn(this)
             g = fullfile(this.ecatPath, 'pet', 'p7377ho1_frames', 'p7377ho1.nii.gz');
@@ -90,13 +106,49 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
         function g = get.T1_fqfn(this)
             g = fullfile(this.sessionPath, 'mri', 'T1.mgz');
         end
-        function g = get.T1OnHoManual_fqfn(this)
-            g = fullfile(this.sessionPath, 'mri', 'T1_on_p7377ho1_manual.nii.gz');
+        function g = get.T1OnHo_fqfn(this)
+            g = fullfile(this.sessionPath, 'mri', 'T1_on_p7377ho1.nii.gz');
         end
+        function g = get.t2_fqfn(this)
+            g = fullfile(this.sessionPath, 'fsl', 't2_default.nii.gz');
+        end
+        
+        function g = get.ho(this)
+            g = mlpet.PETImagingContext(this.ho_fqfn);
+        end
+        function g = get.oo(this)
+            g = mlpet.PETImagingContext(this.oo_fqfn);
+        end
+        function g = get.oc(this)
+            g = mlpet.PETImagingContext(this.oc_fqfn);
+        end
+        function g = get.tr(this)
+            g = mlpet.PETImagingContext(this.tr_fqfn);
+        end
+        function g = get.mask(this)
+            g = mlfsl.ImagingContext(this.mask_fqfn);
+        end
+        function g = get.aparcAseg(this)
+            g = mlmr.MRImagingContext(this.aparcAseg_fqfn);
+        end
+        function g = get.aparcAsegOnHoManual(this)
+            g = mlmr.MRImagingContext(this.aparcAsegOnHoManual_fqfn);
+        end
+        function g = get.T1(this)
+            g = mlmr.MRImagingContext(this.T1_fqfn);
+        end
+        function g = get.T1OnHo(this)
+            g = mlmr.MRImagingContext(this.T1OnHo_fqn);
+        end 
+        function g = get.t2(this)
+            g = mlmr.MRImagingContext(this.t2_fqfn);
+        end     
     end
 
 	methods (Test)
         function test_registerTalairachWithPet(this)
+            return
+            
             prod = this.testFacade.registerTalairachWithPet;
             
             statsReport = this.testFacade.stats(prod);
@@ -110,6 +162,8 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
             end
         end
         function test_registerTalairachOnPet_inverse(this)
+            return
+            
             prod = this.testFacade.registerTalairachOnPet('inverse', true);            
             top  = this.talairach_on_pet;
             this.verifyEqual(prod, top);
@@ -117,11 +171,79 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
                 prod.view(top); 
             end
         end
-        function test_applyTransform(this)
-            error('mlfourd_unittest:notImplemented', '');
+        
+        
+        
+        
+        function test_register2(this)
+            t1OnHo = this.testFacade.register(this.T1, this.ho);
+            this.verifyIC(t1OnHo, 0.933614551530444, 25.2526521461733, 'T1_on_p7377ho1_sumt_919110fwhh');
+            t1OnHo.view;
+            t1OnHo.save;
         end
-        function test_motionCorrect(this)
-            error('mlfourd_unittest:notImplemented', '');
+        function test_register3(this)
+            hoOnTr = this.testFacade.register(this.ho, this.oc, this.tr); 
+            this.verifyIC(hoOnTr, 0.999597504482372, 56.4147385189332, 'p7377ho1_on_p7377tr1_01_919110fwhh');
+            hoOnTr.view;
+            hoOnTr.save;
+        end
+        function test_register4(this)
+            t2 = mlmr.MRImagingContext(fullfile(this.sessionPath, 'fsl', 't2_default.nii.gz'));
+            t1OnT2 = this.testFacade.register(this.T1, this.ho, this.oc, t2);
+            this.verifyIC(t1OnT2, 0.999999436208328, 35.1398357741361, 'T1_on_t2_default');
+            t1OnT2.view;
+            t1OnT2.save;
+        end
+        function test_transformation1(this)   
+            xfm = this.testFacade.transformation(this.oc);
+            this.verifyEqual(xfm, [myfileprefix(this.oc_fqfn) '.mat']);
+        end
+        function test_transformation2_existing(this)  
+            fn = [myfileprefix(this.oc_fqfn) '_on_p7377tr1_01.mat'];
+            mlbash(sprintf('touch %s', fn));
+            xfm = this.testFacade.transformation(this.oc, this.tr);            
+            this.verifyEqual(xfm, fn);
+            deleteExisting(fn);
+        end
+        function test_transformation2_notexisting(this)  
+            fn = [myfileprefix(this.oc_fqfn) '_919110fwhh_on_p7377tr1_01_919110fwhh.mat'];
+            deleteExisting(fn);
+            xfm = this.testFacade.transformation(this.oc, this.tr);            
+            this.verifyEqual(xfm, fn);
+            this.verifyTrue(lexist(xfm));
+        end
+        function test_transformation3(this)     
+            smallT1 = mlmr.MRImagingContext( ...
+                fullfile(this.sessionPath, 'fsl', 't1_default_on_ho_meanvol_default.nii.gz'));
+            xfm = this.testFacade.transformation(this.oc, this.tr, smallT1); 
+            this.verifyEqual(xfm, [myfileprefix(this.oc_fqfn) '_919110fwhh_on_ho_meanvol_default.mat']);   
+            this.verifyTrue(lexist(xfm, 'file')); 
+        end
+        function test_transformation4(this)
+            smallT1 = mlmr.MRImagingContext( ...
+                fullfile(this.sessionPath, 'fsl', 't1_default_on_ho_meanvol_default.nii.gz'));
+            xfm = this.testFacade.transformation(this.oc, this.tr, smallT1, this.t2); 
+            this.verifyEqual(xfm, [myfileprefix(this.oc_fqfn) '_919110fwhh_on_t2_default.mat']);   
+            this.verifyTrue(lexist(xfm, 'file'));         
+        end
+        function test_transform4(this)
+            this.verifyEqual(magic(3), magic(3) + 0.009*dipmin(magic(3)), 'RelTol', 1e-2);
+            xfms = { ...
+                fullfile(this.petPath, 'p7377oc1_frames', 'testing_oc_on_tr.mat'), ...
+                fullfile(this.petPath, 'p7377tr1_frames', 'testing_tr_on_ho.mat'), ...
+                fullfile(this.sessionPath, 'fsl', 'testing_ho_on_t2.mat')};
+            refs = {this.tr this.ho this.t2};
+            t = this.testFacade.transform(this.oc, xfms, refs);
+            control_niftid = mlfourd.NIfTId.load( ...
+                fullfile(this.petPath, 'p7377oc1_frames', 'Test_RegistrationFacade.test_transform4.nii.gz'));
+            if (this.view)
+                t.view(control_niftid.fqfn);
+            end
+        end
+        function test_setup(this)
+            this.fatalAssertTrue(isvalid(this.testFacade));
+            this.fatalAssertInstanceOf(this.testFacade.sessionData,         'mlpipeline.SessionData');
+            this.fatalAssertInstanceOf(this.testFacade.registrationBuilder, 'mlfsl.MultispectralRegistrationBuilder');
         end
 	end
 
@@ -135,8 +257,8 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
  	methods (TestMethodSetup)
 		function setupRegistrationFacadeTest(this)
  			this.testFacade = mlfsl.RegistrationFacade( ...
-                this.cachedSessionData_, this.registrationBuilder_); % handle
-            this.addTeardown(@this.cleanUp);
+                'sessionData', this.cachedSessionData_, 'registrationBuilder', this.registrationBuilder_); % handle
+            this.addTeardown(@this.cleanFiles);
  		end
     end
     
@@ -148,7 +270,13 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
     end
     
     methods (Access = private)
-        function cleanUp(this)
+        function cleanFiles(this)
+        end
+        function verifyIC(this, ic, e, m, fp)
+            this.assumeInstanceOf(ic, 'mlfourd.ImagingContext');
+            this.verifyEqual(ic.niftid.entropy, e, 'RelTol', 1e-6);
+            this.verifyEqual(dipmad(ic.niftid.img), m, 'RelTol', 1e-4);
+            this.verifyEqual(ic.fileprefix, fp); 
         end
     end
     

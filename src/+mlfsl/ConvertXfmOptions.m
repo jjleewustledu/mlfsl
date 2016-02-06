@@ -26,17 +26,17 @@ classdef ConvertXfmOptions < mlfsl.FslOptions
 	
 	methods
 		function this = set.omat(this, obj)
-			this.omat_ = this.xfmName(obj);
+			this.omat_ = this.transformFilename(obj);
         end	
         function val  = get.omat(this)
             if (isempty(this.omat_))
                 if (~isempty(this.inverse))
                     parts = mlchoosers.ImagingChoosers.splitFilename(this.inverse);
-                    this.omat_ = this.xfmName(parts{length(parts)}, parts{1});
+                    this.omat_ = this.transformFilename(parts{length(parts)}, parts{1});
                 end
                 if (~isempty(this.concat))
                     [BtoC,AtoB] = strtok(this.concat);
-                    this.omat_ = this.xfmName(AtoB, BtoC);
+                    this.omat_ = this.transformFilename(AtoB, BtoC);
                 end
             end
             val = this.omat_;

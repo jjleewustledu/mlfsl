@@ -39,7 +39,7 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
             
             this = this.buildVisitor.alignMultispectral(this);             
             this.sourceImage = pet0;            
-            this = this.buildVisitor.transformBuilder(this);
+            this = this.buildVisitor.transformTrilinear(this);
             this.viewTogether(this.product, this.referenceImage);
         end
         function this = alignMR2PET(this, mr, pet)
@@ -67,7 +67,7 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
                 this = this.buildVisitor.inverseTransformBuilder(this);            
                 this.sourceImage    = nii0;
                 this.referenceImage = niiRef; %0;
-                this = this.buildVisitor.transformBuilder(this);
+                this = this.buildVisitor.transformTrilinear(this);
                 this.viewTogether(this.product, niiRef0);
                 return
             end
@@ -84,7 +84,7 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
                 this = this.buildVisitor.inverseTransformBuilder(this);
                 this.sourceImage    = nii0;
                 this.referenceImage = niiRef; %0;
-                this = this.buildVisitor.transformBuilder(this);
+                this = this.buildVisitor.transformTrilinear(this);
                 this.viewTogether(this.product, niiRef0);
                 return
             end

@@ -27,7 +27,7 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             opts.ref        = bldr.referenceImage.fqfileprefix;
             assert(lexist(bldr.xfm, 'file'));
             opts.aff        = bldr.xfm;
-            opts.cout       = PipelineVisitor.thisOnThatImageFilename(opts.in, [opts.ref this.WARPCOEF_SUFFIX]);
+            opts.cout       = this.thisOnThatImageFilename(opts.in, [opts.ref this.WARPCOEF_SUFFIX]);
             if (lexist(bldr.sourceWeight, 'file'))
                 opts.inmask = bldr.sourceWeight; end
             if (lexist(bldr.refweight, 'file'))
@@ -41,7 +41,7 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             opts.in         = bldr.product.fqfileprefix;
             opts.ref        = bldr.referenceImage.fqfileprefix;
             opts.warp       = bldr.warp;
-            opts.out        = PipelineVisitor.thisOnThatImageFilename(opts.in, [opts.ref this.WARPED_SUFFIX]);
+            opts.out        = this.thisOnThatImageFilename(opts.in, [opts.ref this.WARPED_SUFFIX]);
             if (~isempty(bldr.premat))
                 opts.premat = bldr.premat; end
             if (~isempty(bldr.postmat))
@@ -54,8 +54,8 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             import mlpipeline.*;
             opts      = mlfsl.InversewarpOptions;
             opts.ref  = bldr.product.fqfileprefix;
-            opts.warp = PipelineVisitor.thisOnThatImageFilename(opts.ref, [bldr.bettedStandard.fqfileprefix this.WARPCOEF_SUFFIX]);
-            opts.out  = PipelineVisitor.thisOnThatImageFilename(bldr.bettedStandard.fqfileprefix, [opts.ref this.WARPCOEF_SUFFIX]);
+            opts.warp = this.thisOnThatImageFilename(opts.ref, [bldr.bettedStandard.fqfileprefix this.WARPCOEF_SUFFIX]);
+            opts.out  = this.thisOnThatImageFilename(bldr.bettedStandard.fqfileprefix, [opts.ref this.WARPCOEF_SUFFIX]);
             [~,bldr.product] = this.invwarp(opts);
         end
         function rbldr           = visitRoisBuilder2applywarp(this, rbldr)
@@ -63,7 +63,7 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             opts            = mlfsl.ApplywarpOptions;
             opts.in         = rbldr.product.fqfileprefix;
             opts.ref        = rbldr.bt1default.fqfileprefix;
-            opts.warp       = PipelineVisitor.thisOnThatImageFilename(bldr.bettedStandard, [opts.ref this.WARPCOEF_SUFFIX]);
+            opts.warp       = this.thisOnThatImageFilename(bldr.bettedStandard, [opts.ref this.WARPCOEF_SUFFIX]);
             opts.out        = [rbldr.mask.fqfileprefix this.WARPED_SUFFIX];
             opts.interp     = 'nn';
             warpFqfn        = filename(opts.warp);

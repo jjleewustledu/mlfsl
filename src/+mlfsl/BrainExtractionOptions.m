@@ -84,7 +84,7 @@ classdef BrainExtractionOptions < mlfsl.FslOptions & mlfsl.BrainExtractionOption
             mrab  = mlmr.MRAlignmentBuilder('image',     imcast(this.getT2,  'mlfourd.ImagingContext'), ...
                                             'reference', imcast(this.in_tag, 'mlfourd.ImagingContext'));
             visit = mlfsl.FlirtVisitor;
-            mrab  = visit.align6DOF(mrab);
+            mrab  = visit.alignMultispectral(mrab);
             fqfp  = mrab.product.fqfileprefix;      
             
         end
@@ -92,7 +92,7 @@ classdef BrainExtractionOptions < mlfsl.FslOptions & mlfsl.BrainExtractionOption
             mrab  = mlmr.MRAlignmentBuilder('image',     imcast(this.in_tag, 'mlfourd.ImagingContext'), ...
                                             'reference', imcast(this.getT2,  'mlfourd.ImagingContext'));
             visit = mlfsl.FlirtVisitor;
-            mrab  = visit.align6DOF(mrab);
+            mrab  = visit.alignMultispectral(mrab);
             fqfp  = mrab.product.fqfileprefix;      
         end
         function fqfn  = getT2(this)
