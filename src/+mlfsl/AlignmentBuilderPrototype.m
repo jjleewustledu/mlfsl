@@ -123,7 +123,7 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             this.referenceImage = im;
 
             this = this.buildVisitor.alignMultispectral(this);
-            this = this.buildVisitor.inverseTransformBuilder(this);            
+            this = this.buildVisitor.invertTransform(this);            
             this.sourceImage = im.clone;
             this.referenceImage = ref;
             this = this.buildVisitor.transformTrilinear(this);
@@ -146,7 +146,7 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             this.referenceImage = im.clone;
             this.xfm = xfm;
             
-            this = this.buildVisitor.inverseTransformBuilder(this);            
+            this = this.buildVisitor.invertTransform(this);            
             this.sourceImage = im.clone;
             this.referenceImage = ref;
             this = this.buildVisitor.transformTrilinear(this);

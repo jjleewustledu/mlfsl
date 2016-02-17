@@ -77,9 +77,12 @@ classdef AbstractRegistrationBuilder
         function this = concatTransforms(this, varargin)
             this = this.buildVisitor.concatTransforms(this, varargin{:});
         end
+        function this = invertTransform(this, varargin)
+            this = this.buildVisitor.invertTransform(this, varargin{:});
+        end
         function this = motionCorrect(this)
             this  = this.buildVisitor.motionCorrect(this);
-        end        
+        end
         function this = register(this)
             if (this.sourceImage.sizeEq(this.referenceImage))
                 this = this.registerBijective;
@@ -213,7 +216,7 @@ classdef AbstractRegistrationBuilder
             this.referenceImage = im;
 
             this = this.buildVisitor.alignMultispectral(this);
-            this = this.buildVisitor.inverseTransformBuilder(this);            
+            this = this.buildVisitor.invertTransform(this);            
             this.sourceImage = im.clone;
             this.referenceImage = ref;
             this = this.buildVisitor.transformTrilinear(this);
@@ -236,7 +239,7 @@ classdef AbstractRegistrationBuilder
             this.referenceImage = im.clone;
             this.xfm = xfm;
             
-            this = this.buildVisitor.inverseTransformBuilder(this);            
+            this = this.buildVisitor.invertTransform(this);            
             this.sourceImage = im.clone;
             this.referenceImage = ref;
             this = this.buildVisitor.transformTrilinear(this);

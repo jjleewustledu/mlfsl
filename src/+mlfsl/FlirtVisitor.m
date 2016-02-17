@@ -53,6 +53,13 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             xfm      = xfms{end};
             bldr.xfm = xfm;
         end 
+        function [bldr,xfm] = invertTransform(this, bldr)
+            opts         = mlfsl.ConvertXfmOptions;
+            opts.inverse = bldr.xfm;
+            opts.omat    = this.inverseTransformFilename(bldr.xfm);
+            xfm          = this.invertTransform__(opts);
+            bldr.xfm     = xfm;
+        end
         function bldr       = motionCorrect(this, bldr)
             opts         = mlfsl.McflirtOptions;
             opts.in      = this.assignIn(bldr);
@@ -159,7 +166,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             xfm          = this.flirt__(opts);
             
             bldr.xfm     = xfm;
-            [bldr,xfm]   = this.inverseTransformBuilder(bldr);
+            [bldr,xfm]   = this.invertTransform(bldr);
             
             opts         = mlfsl.FlirtOptions;
             opts.in      = this.assignIn(bldr);
@@ -226,13 +233,6 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             bldr.xfm     = xfm;
             bldr.product = this.transform__(opts);
         end        
-        function [bldr,xfm] = inverseTransformBuilder(this, bldr)
-            opts         = mlfsl.ConvertXfmOptions;
-            opts.inverse = bldr.xfm;
-            opts.omat    = this.inverseTransformFilename(bldr.xfm);
-            bldr.xfm     = this.inverseTransform__(opts);
-            xfm          = bldr.xfm;
-        end
         
         %% CTOR
         
@@ -304,9 +304,9 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             opts2         = mlfsl.ConvertXfmOptions;
             opts2.inverse = opts.init;
             opts2.omat    = this.inverseTransformFilename(opts.init);
-            opts.init     = this.inverseTransform__(opts2);
+            opts.init     = this.invertTransform__(opts2);
         end
-        function xfm  = inverseTransform__(this, opts)
+        function xfm  = invertTransform__(this, opts)
             assert(isa(opts, 'mlfsl.ConvertXfmOptions'));
             assert(~isempty(opts.inverse));
             assert(~isempty(opts.omat));

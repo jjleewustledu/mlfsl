@@ -13,7 +13,19 @@ classdef MultispectralFlirtVisitor < mlfsl.FlirtVisitor
  		
  	end
 
-	methods 
+	methods         
+        function bldr = motionCorrect(this, bldr)
+            if (isa(bldr, 'mlpet.PETRegistrationBuilder'))
+                pfv = mlpetPETFlirtVisitor;
+                bldr = pfv.motionCorrect(bldr);
+                return
+            end
+            if (isa(bldr, 'mlmr.MRRegistrationBuilder'))
+                mfv = mlmr.MRFlirtVisitor;
+                bldr = mfv.motionCorrect(bldr);
+            end
+            bldr = motionCorrect@mlfsl.FlirtVisitor(this, bldr);
+        end    
         
  		function this = MultispectralFlirtVisitor(varargin)
  			this = this@mlfsl.FlirtVisitor(varargin{:});

@@ -147,29 +147,38 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
 
 	methods (Test)
         function test_registerTalairachWithPet(this)
-            return
+            studyd = mlpipeline.StudyDataSingletons.instance('raichle');
+            sessd = mlraichle.SessionData( ...
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');
             
-            prod = this.testFacade.registerTalairachWithPet;
-            
-            statsReport = this.testFacade.stats(prod);
-            this.verifyEqual(statsReport, this.expectedReport);
-            this.verifyEqual(prod.talairach_on_ho, this.talairach_on_ho);
-            this.verifyEqual(prod.talairach_on_oo, this.talairach_on_oo);
-            this.verifyEqual(prod.talairach_on_oc, this.talairach_on_oc);
-            this.verifyEqual(prod.talairach_on_tr, this.talairach_on_tr);
-            if (this.view)
-                prod.view(top); 
-            end
+            rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
+            rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);            
+            prod = rf.registerTalairachWithPet;
+            prod.talairach_on_fdg.view;
+            prod.talairach_on_ho1.view;
+            prod.talairach_on_oo1.view;
+            prod.talairach_on_oc1.view;
+            prod.talairach_on_ho2.view;
+            prod.talairach_on_oo2.view;
+            prod.talairach_on_oc2.view;
+%             prod = rf.registerTalairachWithPet;
+%             prod.talairach_on_fdg.view;
+%             prod.talairach_on_ho1.view;
+%             prod.talairach_on_oo1.view;
+%             prod.talairach_on_oc1.view;
+%             prod.talairach_on_ho2.view;
+%             prod.talairach_on_oo2.view;
+%             prod.talairach_on_oc2.view;
         end
-        function test_registerTalairachOnPet_inverse(this)
-            return
+        function test_petMotionCorrect(this)
+            studyd = mlpipeline.StudyDataSingletons.instance('raichle');
+            sessd = mlraichle.SessionData( ...
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');
             
-            prod = this.testFacade.registerTalairachOnPet('inverse', true);            
-            top  = this.talairach_on_pet;
-            this.verifyEqual(prod, top);
-            if (this.view)
-                prod.view(top); 
-            end
+            rb = mlpet.PETRegistrationBuilder('sessionData', sessd);
+            rf = mlraichle.RegistrationFacade('sessionData', sessd, 'registrationBuilder', rb);            
+            fdg = rf.petMotionCorrect(rf.fdg);
+            fdg.view;            
         end
         
         
@@ -188,8 +197,8 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
             hoOnTr.save;
         end
         function test_register4(this)
-            t2 = mlmr.MRImagingContext(fullfile(this.sessionPath, 'fsl', 't2_default.nii.gz'));
-            t1OnT2 = this.testFacade.register(this.T1, this.ho, this.oc, t2);
+            t2 = mlmr.MRImagingContext(fullfile(this.sessionPath, 'fsl', 't2_default.nii.gz')); %#ok<PROP>
+            t1OnT2 = this.testFacade.register(this.T1, this.ho, this.oc, t2); %#ok<PROP>
             this.verifyIC(t1OnT2, 0.999999436208328, 35.1398357741361, 'T1_on_t2_default');
             t1OnT2.view;
             t1OnT2.save;
