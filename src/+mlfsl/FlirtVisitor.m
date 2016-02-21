@@ -53,6 +53,46 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             xfm      = xfms{end};
             bldr.xfm = xfm;
         end 
+        function c          = cost(this, bldr, cfun)
+            %% COST
+            %  @param bldr is an mlfsl.RegistrationBuilder with resampled image in product
+            %  @param cfun is a cost function from flirt
+            %
+            %  Subject: Re: quantify registration evaluation
+            %  From: Mark Jenkinson <[log in to unmask]>
+            %  Reply-To: FSL - FMRIB's Software Library <[log in to unmask]>
+            %  Date: Fri, 2 Oct 2009 08:24:23 +0100
+            % 
+            %  Hi,
+            % 
+            %  Yes, you can get this information from FLIRT.
+            %  Just do:
+            %     flirt -in resampled_image -ref refimage -schedule measurecost1.sch
+            %  You can also select the similarity metric you want with -cost ...
+            % 
+            %  The measurecost1.sch file has been posted on the list before, but
+            %  I'm attaching another copy here.  Just save it (as plain text)
+            %  somewhere and give the full path in the command above.
+            % 
+            %  The cost value is the first number printed.  If you want to automatically
+            %  select only this then you can do:
+            %      flirt .... | head -1 | cut -f1 -d' '
+            %  with the above flirt command.
+            % 
+            %  All the best,
+            %  Mark
+
+            assert(lstrfind(cfun, {'mutualinfo' 'corratio' 'normcorr' 'normmi' 'leastsq' 'labeldiff' 'bbr'}))
+            
+            opts              = mlfsl.FlirtOptions;
+            opts.in           = bldr.product;
+            opts.ref          = bldr.referenceImage;
+            opts.cost         = cfun;
+            opts.schedule     = fullfile(getenv('FSLDIR'), 'etc', 'flirtsch', 'measurecost1.sch');
+            
+            [~,r] = this.cmd('flirt', opts, ' | head -1 | cut -f1 -d'' ''');
+            c = str2double(r);
+        end
         function [bldr,xfm] = invertTransform(this, bldr)
             opts         = mlfsl.ConvertXfmOptions;
             opts.inverse = bldr.xfm;

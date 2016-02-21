@@ -10,7 +10,6 @@ classdef RegistrationFacade < handle
  	
     properties 
         recursion = true;
-        singleMoco = false;
     end
     
     properties (Dependent)
@@ -28,11 +27,9 @@ classdef RegistrationFacade < handle
     end
     
 	methods
-        function g = talairach(this)
-            if (isempty(this.talairach_) && ismethod(this.sessionData_, 'T1'))
-                this.talairach_ = this.sessionData_.T1;
-            end
-            g = this.talairach_;
+        function g = checkpointFqfilename(this, label)
+            g = fullfile(this.sessionData.sessionPath, ...
+                sprintf('%s.checkpoint_%s_%s.mat', class(this), label, datestr(now, 30)));
         end
         function g = pet(this)
             if (isempty(this.pet_))
@@ -53,28 +50,34 @@ classdef RegistrationFacade < handle
             end
             g = this.gluc_;
         end
-        function g = ho(this)
-            if (isempty(this.ho_) && ismethod(this.sessionData_, 'ho'))
-                this.ho_ = this.sessionData_.ho;
-            end
+        function g = ho(this, snum)
+            assert(isnumeric(snum));
+            this.sessionData_.snumber = snum;
+            this.ho_ = this.sessionData_.ho;
             g = this.ho_;
         end
-        function g = oo(this)
-            if (isempty(this.oo_) && ismethod(this.sessionData_, 'oo'))
-                this.oo_ = this.sessionData_.oo;
-            end
+        function g = oo(this, snum)
+            assert(isnumeric(snum));
+            this.sessionData_.snumber = snum;
+            this.oo_ = this.sessionData_.oo;
             g = this.oo_;
         end
-        function g = oc(this)
-            if (isempty(this.oc_) && ismethod(this.sessionData_, 'oc'))
-                this.oc_ = this.sessionData_.oc;
-            end
+        function g = oc(this, snum)
+            assert(isnumeric(snum));
+            this.sessionData_.snumber = snum;
+            this.oc_ = this.sessionData_.oc;
             g = this.oc_;
         end
-        function g = tr(this)
-            if (isempty(this.tr_) && ismethod(this.sessionData_, 'tr'))
-                this.tr_ = this.sessionData_.tr;
+        function g = talairach(this)
+            if (isempty(this.talairach_) && ismethod(this.sessionData_, 'T1'))
+                this.talairach_ = this.sessionData_.T1;
             end
+            g = this.talairach_;
+        end
+        function g = tr(this, snum)
+            assert(isnumeric(snum));
+            this.sessionData_.snumber = snum;
+            this.tr_ = this.sessionData_.tr;
             g = this.tr_;
         end
         
@@ -89,7 +92,7 @@ classdef RegistrationFacade < handle
                 return
             end
             assert(isa(src, 'mlfourd.ImagingContext'));   
-            if (lstrfind(src.fileprefix, '_mcf') && this.singleMoco)
+            if (lstrfind(src.fileprefix, '_mcf'))
                 prod = src;
                 return
             end
@@ -119,7 +122,7 @@ classdef RegistrationFacade < handle
             end
             prod = images{end};
         end
-        function prod = transform(this, src, xfms, refs)
+        function prod = transform(this, src, xfms, refs, varargin)
             if (isempty(src))
                 prod = [];
                 return
@@ -127,10 +130,17 @@ classdef RegistrationFacade < handle
             if (isempty(xfms))
                 prod = src;
                 return
-            end
-            
+            end            
             if (~iscell(xfms)); xfms = {xfms}; end
             if (~iscell(refs)); refs = {refs}; end
+            
+            ip = inputParser;
+            addRequired(ip, 'src',  @(x) isa(x, 'mlfourd.ImagingContext'));
+            addRequired(ip, 'xfms', @iscell);
+            addRequired(ip, 'refs', @iscell);
+            addOptional(ip, 'interp', 'transformTrilinear', @ischar);
+            parse(ip, src, xfms, refs, varargin{:});
+            
             assert(isa(src, 'mlfourd.ImagingContext'));
             assert(length(xfms) == length(refs));
             cellfun(@(x) assert(strcmp(x(end-3:end), mlfsl.FlirtVisitor.XFM_SUFFIX)), xfms);
@@ -143,7 +153,7 @@ classdef RegistrationFacade < handle
                 mrb.xfm = xfms{idx};
                 mrb.sourceImage = prod;
                 mrb.referenceImage = refs{idx};
-                mrb  = mrb.transformTrilinear;
+                mrb  = mrb.(ip.Results.interp);
                 prod = mrb.product;
             end
         end
@@ -173,44 +183,9 @@ classdef RegistrationFacade < handle
             xfms(1) = [];
             xfm = this.concatTransformations(xfms{:});
         end
-        function prod = registerTalairachWithPet(this)
+        function product = registerTalairachWithPet(this)
             %% REGISTERTALAIRACHWITHPET
             %  @return prod is a struct with products as fields.
-            
-            prod.talairach = this.talairach;
-            this.pet_      = this.petMotionCorrectAndRegister(this.pet);
-            prod.petAtlas  = this.pet.atlas;
-            prod.fdg       = this.petMotionCorrect(this.fdg);
-            prod.gluc      = this.petMotionCorrect(this.gluc);
-            prod.ho        = this.petMotionCorrect(this.ho);
-            prod.oo        = this.petMotionCorrect(this.oo);
-            prod.oc        = this.oc;
-            prod.tr        = this.tr;
-            
-            msrb       = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
-            msrb.sourceImage = prod.talairach;
-            msrb.referenceImage = prod.petAtlas;
-            msrb = msrb.registerSurjective;
-            tal_on_atl = msrb.product;
-            
-            [ fdg_on_atl,xfm_atl_on_fdg]  = this.petRegisterAndInvertTransform(prod.fdg,  prod.petAtlas);
-            [gluc_on_atl,xfm_atl_on_gluc] = this.petRegisterAndInvertTransform(prod.gluc, prod.petAtlas);
-            [  ho_on_atl,xfm_atl_on_ho]   = this.petRegisterAndInvertTransform(prod.ho,   prod.petAtlas);
-            [  oo_on_atl,xfm_atl_on_oo]   = this.petRegisterAndInvertTransform(prod.oo,   prod.petAtlas);
-            [  oc_on_atl,xfm_atl_on_oc]   = this.petRegisterAndInvertTransform(prod.oc,   prod.petAtlas);
-            [  tr_on_atl,xfm_atl_on_tr]   = this.petRegisterAndInvertTransform(prod.tr,   prod.petAtlas);
-            
-            if (this.recursion)
-                this.pet_ = mlpet.PETImagingContext( ...
-                    this.annihilateEmptyCells({fdg_on_atl gluc_on_atl ho_on_atl oo_on_atl oc_on_atl tr_on_atl})); % for recursion
-            end
-            
-            prod.talairach_on_fdg  = this.transform(tal_on_atl, xfm_atl_on_fdg,  this.fdg);
-            prod.talairach_on_gluc = this.transform(tal_on_atl, xfm_atl_on_gluc, this.gluc);
-            prod.talairach_on_ho   = this.transform(tal_on_atl, xfm_atl_on_ho,   this.ho);
-            prod.talairach_on_oo   = this.transform(tal_on_atl, xfm_atl_on_oo,   this.oo);
-            prod.talairach_on_oc   = this.transform(tal_on_atl, xfm_atl_on_oc,   this.oc);
-            prod.talairach_on_tr   = this.transform(tal_on_atl, xfm_atl_on_tr,   this.tr);
         end 
         
  		function this = RegistrationFacade(varargin)

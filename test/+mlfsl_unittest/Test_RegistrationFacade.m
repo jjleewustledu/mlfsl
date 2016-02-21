@@ -149,36 +149,44 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
         function test_registerTalairachWithPet(this)
             studyd = mlpipeline.StudyDataSingletons.instance('raichle');
             sessd = mlraichle.SessionData( ...
-                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');
-            
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 2, 'suffix', '_v2');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);            
-            prod = rf.registerTalairachWithPet;
-            prod.talairach_on_fdg.view;
-            prod.talairach_on_ho1.view;
-            prod.talairach_on_oo1.view;
-            prod.talairach_on_oc1.view;
-            prod.talairach_on_ho2.view;
-            prod.talairach_on_oo2.view;
-            prod.talairach_on_oc2.view;
-%             prod = rf.registerTalairachWithPet;
-%             prod.talairach_on_fdg.view;
-%             prod.talairach_on_ho1.view;
-%             prod.talairach_on_oo1.view;
-%             prod.talairach_on_oc1.view;
-%             prod.talairach_on_ho2.view;
-%             prod.talairach_on_oo2.view;
-%             prod.talairach_on_oc2.view;
+            product = rf.registerTalairachWithPet;
+            return
+            
+            product.talairach_on_fdg.view;
+            product.talairach_on_ho1.view;
+            product.talairach_on_oo1.view;
+            product.talairach_on_oc1.view;
+            product.talairach_on_ho2.view;
+            product.talairach_on_oo2.view;
+            product.talairach_on_oc2.view;
         end
         function test_petMotionCorrect(this)
             studyd = mlpipeline.StudyDataSingletons.instance('raichle');
             sessd = mlraichle.SessionData( ...
-                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');
-            
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
             rb = mlpet.PETRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade('sessionData', sessd, 'registrationBuilder', rb);            
             fdg = rf.petMotionCorrect(rf.fdg);
             fdg.view;            
+        end
+        function test_masksTalairachProduct(this)
+            studyd = mlpipeline.StudyDataSingletons.instance('raichle');
+            sessd = mlraichle.SessionData( ...
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
+            rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
+            rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);
+            msk = mlfourd.ImagingContext( ...
+                fullfile(rf.sessionData.sessionPath, 'V1', 'wmparc.mgz'));
+            load(fullfile(rf.sessionData.sessionPath, 'mlraichle.RegistrationFacade.checkpoint_20160217T172953.mat'));
+            masks = rf.masksTalairachProduct(msk, product); 
+            this.verifyTrue(isfield(masks, 'talairach_on_atl'));
+            this.verifyTrue(isfield(masks, 'talairach_on_oc1'));
+            this.verifyTrue(isfield(masks, 'talairach_on_ho1'));
+            this.verifyTrue(isfield(masks, 'talairach_on_oo1'));
+            this.verifyTrue(isfield(masks, 'talairach_on_fdg'));
         end
         
         
