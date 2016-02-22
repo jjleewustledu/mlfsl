@@ -25,7 +25,7 @@ classdef AbstractRegistrationBuilder
     end
     
     properties 
-        blurringFactor = 2
+        blurringFactor = 1
     end
     
 	properties (Dependent)
@@ -74,6 +74,9 @@ classdef AbstractRegistrationBuilder
     end
     
 	methods
+        
+        %% REGISTRATION
+        
         function this = concatTransforms(this, varargin)
             this = this.buildVisitor.concatTransforms(this, varargin{:});
         end
@@ -119,17 +122,36 @@ classdef AbstractRegistrationBuilder
         
         %% SUPPORT METHODS
         
+        function this = cleanUpProxy(this, pb)
+            ims = {'sourceWeight' 'referenceWeight'};
+            for idx = 1:length(ims)
+                deleteExisting(pb.(ims{idx}));
+            end
+        end
         function ic = ensurePetBlurred(this, ic)
             if (~isa(ic, 'mlpet.PETImagingContext'))
                 return
             end
             ic = ic.blurred(this.blurringFactor * this.petPointSpread);
         end
-        function ic = ensurePetMaskedByZ(~, ic)
+        function ic = ensurePetMaskedByZ(this, ic)
             if (~isa(ic, 'mlpet.PETImagingContext'))
                 return
             end
+            if (isa(this.sessionData, 'mlraichle.SessionData'))
+                return
+            end
             ic = ic.maskedByZ;
+        end
+        function ic = ensureTimeDependent(this, ic, lent)
+            n = ic.niftid;
+            z = zeros([n.size lent]);
+            for t = 1:lent
+                z(:,:,:,t) = n.img;
+            end
+            n.img = z;
+            n.fileprefix = sprintf('%s%s%i', ic.fileprefix, '_x', lent);
+            ic = this.sessionData.repackageImagingContext(n, class(ic));
         end
         function ic = ensureTimeIndep(~, ic)
             if (ic.rank < 4)
@@ -157,17 +179,27 @@ classdef AbstractRegistrationBuilder
                 return
             end
             wt = ip.Results.wt;
-        end        
-        function p = petPointSpread(~)
-            p = mlpet.PETRegistry.instance.petPointSpread;
+        end      
+        function fp = motionCorrectedFileprefix(this, ic)
+            %% MOTIONCORRECTEDFILEPREFIX is a KLUDGE!
+            
+            import mlfourd.*;
+            n = NIfTId;            
+            n.fqfileprefix = ic.fqfileprefix(1:strfind(ic.fqfileprefix, '_mcf')-1);
+            b = BlurringNIfTId(n);
+            b.blur = this.blurringFactor * this.petPointSpread;
+            fp = [b.blurredFileprefix '_mcf'];
+        end 
+        function p = petPointSpread(this)
+            p = this.sessionData.petPointSpread;
         end
         function p = pointSpread(this)
-            p = mlpet.PETRegistry.instance.petPointSpread;
+            p = this.sessionData.petPointSpread;
             if (~isempty(this.sourceImage))
-                p = max(p, this.sourceImage.niftid.pixdim(1:3) / 2);
+                p = max(p, this.sourceImage.niftid.pixdim(1:3));
             end
             if (~isempty(this.referenceImage))
-                p = max(p, this.referenceImage.niftid.pixdim(1:3) / 2);
+                p = max(p, this.referenceImage.niftid.pixdim(1:3));
             end
         end        
         function pb = proxyBuilder(this)  
@@ -187,12 +219,6 @@ classdef AbstractRegistrationBuilder
             pb.referenceImage.ensureSaved;
             pb.sourceWeight.ensureSaved;
             pb.referenceWeight.ensureSaved;
-        end
-        function this = cleanUpProxy(this, pb)
-            ims = {'sourceWeight' 'referenceWeight'};
-            for idx = 1:length(ims)
-                deleteExisting(pb.(ims{idx}));
-            end
         end
         
         %% LEGACY
@@ -331,7 +357,7 @@ classdef AbstractRegistrationBuilder
         xfm_
     end
     
-    methods (Access = protected)       
+    methods (Access = protected)         
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 

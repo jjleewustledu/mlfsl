@@ -74,6 +74,30 @@ classdef MultispectralRegistrationBuilder < mlfsl.AbstractRegistrationBuilder
     end
     
 	methods 
+        function this = registerAnatomyOnDynamicPET(this)
+            
+            % motion correct PET
+            prb = mlpet.PETRegistrationBuilder('sessionData', this.sessionData);
+            prb.sourceImage = this.referenceImage;
+            if (lexist([prb.motionCorrectedFileprefix(prb.sourceImage) '.nii.gz']))
+                prb.product = mlpet.PETImagingContext( ...
+                              [prb.motionCorrectedFileprefix(prb.sourceImage) '.nii.gz']);
+                prb.xfm     = [prb.motionCorrectedFileprefix(prb.sourceImage) '.mat'];
+            else
+                prb = prb.motionCorrect;
+            end
+
+            % register anatomy to motion-corrected PET
+            this.referenceImage = prb.product; 
+            this = this.registerSurjective;                           
+
+            % apply motion-correcting transformations to anatomy
+            prb.sourceImage = this.product;
+            prb.referenceImage = prb.product;
+            prb = prb.applyMotionCorrection;
+            this.product = prb.product;
+            this.xfm = prb.xfm;
+        end
         function this = registerBijective(this)
             this = this.registerInjective;
         end

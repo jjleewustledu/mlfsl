@@ -24,9 +24,19 @@ classdef RegistrationFacade < handle
         function g = get.registrationBuilder(this)
             g = this.registrationBuilder_;
         end
+        function set.registrationBuilder(this, s)
+            assert(isa(s, 'mlfsl.AbstractRegistrationBuilder'));
+            this.registrationBuilder_ = s;
+        end
     end
     
 	methods
+        function g = brain(this)
+            if (isempty(this.brain_) && ismethod(this.sessionData_, 'brain'))
+                this.brain_ = this.sessionData_.brain;
+            end
+            g = this.brain_;
+        end
         function g = checkpointFqfilename(this, label)
             g = fullfile(this.sessionData.sessionPath, ...
                 sprintf('%s.checkpoint_%s_%s.mat', class(this), label, datestr(now, 30)));
@@ -85,22 +95,6 @@ classdef RegistrationFacade < handle
             rb  = this.registrationBuilder;
             rb  = rb.concatTransforms(varargin{:});
             xfm = rb.xfm;
-        end
-        function prod = petMotionCorrect(this, src)
-            if (isempty(src))
-                prod = [];
-                return
-            end
-            assert(isa(src, 'mlfourd.ImagingContext'));   
-            if (lstrfind(src.fileprefix, '_mcf'))
-                prod = src;
-                return
-            end
-                     
-            prb  = mlpet.PETRegistrationBuilder('sessionData', this.sessionData);
-            prb.sourceImage = src;
-            prb  = prb.motionCorrect;
-            prod = prb.product;
         end
         function prod = register(this, varargin)
             assert(length(varargin) > 1);
@@ -212,13 +206,14 @@ classdef RegistrationFacade < handle
         sessionData_
         registrationBuilder_
         
-        talairach_
+        brain_
         fdg_
         gluc_
         ho_
         oo_
         oc_
         pet_
+        talairach_
         tr_
     end
     
@@ -242,7 +237,7 @@ classdef RegistrationFacade < handle
         end
     end
     
-    methods (Access = protected)        
+    methods (Access = protected)   
         function [prod,xfm] = petRegisterAndInvertTransform(this, src, ref)
             if (isempty(src) || isempty(ref))
                 prod = [];
