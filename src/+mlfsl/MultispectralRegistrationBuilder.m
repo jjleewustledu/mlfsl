@@ -15,6 +15,8 @@ classdef MultispectralRegistrationBuilder < mlfsl.AbstractRegistrationBuilder
         sourceImage
         referenceImage
         product
+        
+        prexfm
     end
 
     methods %% GET/SET
@@ -71,10 +73,64 @@ classdef MultispectralRegistrationBuilder < mlfsl.AbstractRegistrationBuilder
             prod = this.product_;
             %prod.setNoclobber(false);
         end
+        function this = set.prexfm(this, x)
+            %% SET.XFM casts its argument to a f. q. filename ending in FlirtVisitor.XFM_SUFFIX
+            
+            this.prexfm_ = [myfileprefix(x) mlfsl.FlirtVisitor.XFM_SUFFIX];
+        end
+        function x    = get.prexfm(this)
+            %% GET.XFM 
+            %  @return:
+            %  - f.q. filename obtained from this.product, ending in FlirtVisitor.XFM_SUFFIX
+            %  - f.q. filename with FnirtVisitor.WARPCOEF_SUFFIX replaced by XFM_SUFFIX
+
+            import mlfsl.*;
+            if (isempty(this.xfm_))
+                this.prexfm_ = this.product.fqfileprefix; 
+            end
+            lw = length(FnirtVisitor.WARPCOEF_SUFFIX);
+            if ( strcmp(this.prexfm_(end-lw+1:end), FnirtVisitor.WARPCOEF_SUFFIX))
+                pos = strfind(this.prexfm_,         FnirtVisitor.WARPCOEF_SUFFIX);
+                this.prexfm_ = this.prexfm_(1:pos-1);
+            end
+            lx = length(FlirtVisitor.XFM_SUFFIX);
+            if (~strfind(this.prexfm_(end-lx+1:end), FlirtVisitor.XFM_SUFFIX));
+                this.prexfm_ = [this.prexfm_            FlirtVisitor.XFM_SUFFIX]; 
+            end
+            x = this.prexfm_;
+        end
     end
     
 	methods 
-        function this = registerAnatomyOnDynamicPET(this)
+        function this = registerBijective(this)
+            this = this.registerInjective;
+        end
+        function this = registerInjective(this)
+            visitor = mlfsl.MultispectralFlirtVisitor;           
+            this = visitor.registerInjective(this, this.proxyBuilder);
+            this.cleanUpProxy(this.proxyBuilder);
+        end
+        function this = registerSurjective(this)
+            if (this.referenceImage.niftid.rank > 3)
+                this = this.registerSurjectiveOnDynamic;
+                return
+            end
+            visitor = mlfsl.MultispectralFlirtVisitor;           
+            this = visitor.registerSurjective(this, this.proxyBuilder);
+            this.cleanUpProxy(this.proxyBuilder);
+        end
+        function this = registerSurjectiveOnDynamic(this)
+            if (isa(this.referenceImage, 'mlpet.PETImagingContext'))
+                this = this.registerSurjectiveOnDynamicPET;
+                return               
+            end
+            if (isa(this.referenceImage, 'mlmr.MRImagingContext'))
+                this = this.registerSurjectiveOnDynamicMR;
+                return
+            end
+            this = this.registerSurjectiveOnDynamicOther;
+        end        
+        function this = registerSurjectiveOnDynamicPET(this)
             
             % motion correct PET
             prb = mlpet.PETRegistrationBuilder('sessionData', this.sessionData);
@@ -86,6 +142,7 @@ classdef MultispectralRegistrationBuilder < mlfsl.AbstractRegistrationBuilder
             else
                 prb = prb.motionCorrect;
             end
+            this.prexfm = prb.xfm;
 
             % register anatomy to motion-corrected PET
             this.referenceImage = prb.product; 
@@ -94,22 +151,59 @@ classdef MultispectralRegistrationBuilder < mlfsl.AbstractRegistrationBuilder
             % apply motion-correcting transformations to anatomy
             prb.sourceImage = this.product;
             prb.referenceImage = prb.product;
-            prb = prb.applyMotionCorrection;
+            prb = prb.transform4D;
             this.product = prb.product;
             this.xfm = prb.xfm;
+        end        
+        function this = registerSurjectiveOnDynamicMR(this)
+            
+            % motion correct MR
+            mrrb = mlmr.MRRegistrationBuilder('sessionData', this.sessionData);
+            mrrb.sourceImage = this.referenceImage;
+            if (lexist([mrrb.motionCorrectedFileprefix(mrrb.sourceImage) '.nii.gz']))
+                mrrb.product = mlmr.MRImagingContext( ...
+                               [mrrb.motionCorrectedFileprefix(mrrb.sourceImage) '.nii.gz']);
+                mrrb.xfm     = [mrrb.motionCorrectedFileprefix(mrrb.sourceImage) '.mat'];
+            else
+                mrrb = mrrb.motionCorrect;
+            end
+            this.prexfm = mrrb.xfm;
+
+            % register anatomy to motion-corrected MR
+            this.referenceImage = mrrb.product; 
+            this = this.registerSurjective;                           
+
+            % apply motion-correcting transformations to anatomy
+            mrrb.sourceImage = this.product;
+            mrrb.referenceImage = mrrb.product;
+            mrrb = mrrb.transform4D;
+            this.product = mrrb.product;
+            this.xfm = mrrb.xfm;
         end
-        function this = registerBijective(this)
-            this = this.registerInjective;
-        end
-        function this = registerInjective(this)
-            visitor = mlfsl.MultispectralFlirtVisitor;           
-            this = visitor.registerInjective(this, this.proxyBuilder);
-            this.cleanUpProxy(this.proxyBuilder);
-        end
-        function this = registerSurjective(this)
-            visitor = mlfsl.MultispectralFlirtVisitor;           
-            this = visitor.registerSurjective(this, this.proxyBuilder);
-            this.cleanUpProxy(this.proxyBuilder);
+        function this = registerSurjectiveOnDynamicOther(this)
+            
+            % motion correct MR
+            msrb = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
+            msrb.sourceImage = this.referenceImage;
+            if (lexist([msrb.motionCorrectedFileprefix(msrb.sourceImage) '.nii.gz']))
+                msrb.product = mlfsl.ImagingContext( ...
+                               [msrb.motionCorrectedFileprefix(msrb.sourceImage) '.nii.gz']);
+                msrb.xfm     = [msrb.motionCorrectedFileprefix(msrb.sourceImage) '.mat'];
+            else
+                msrb = msrb.motionCorrect;
+            end
+            this.prexfm = msrb.xfm;
+
+            % register anatomy to motion-corrected MR
+            this.referenceImage = msrb.product; 
+            this = this.registerSurjective;                           
+
+            % apply motion-correcting transformations to anatomy
+            msrb.sourceImage = this.product;
+            msrb.referenceImage = msrb.product;
+            msrb = msrb.transform4D;
+            this.product = msrb.product;
+            this.xfm = msrb.xfm;
         end
         
         %% CTOR
@@ -120,7 +214,13 @@ classdef MultispectralRegistrationBuilder < mlfsl.AbstractRegistrationBuilder
         function obj  = clone(this)
             obj = mlfsl.MultispectralRegistrationBuilder(this);
         end
- 	end 
+    end 
+    
+    %% PROTECTED
+    
+    properties (Access = protected)
+        prexfm_
+    end
     
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end

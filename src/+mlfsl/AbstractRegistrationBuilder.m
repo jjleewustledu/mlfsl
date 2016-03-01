@@ -12,7 +12,7 @@ classdef AbstractRegistrationBuilder
  	%  $Id: AbstractRegistrationBuilder.m 2644 2013-09-21 22:58:45Z jjlee $ 
  	 
     
-    properties (Abstract)        
+    properties (Abstract)
         sourceWeight
         referenceWeight
         sourceImage
@@ -24,17 +24,29 @@ classdef AbstractRegistrationBuilder
         clone(this)
     end
     
-    properties 
-        blurringFactor = 1
-    end
-    
 	properties (Dependent)
+        blurringFactor
+        interp
         sessionData        
         buildVisitor
         xfm
     end 
 
     methods %% SET/GET
+        function g    = get.blurringFactor(this)
+            g = this.blurringFactor_;
+        end
+        function this = set.blurringFactor(this, s)
+            assert(isnumeric(s));
+            this.blurringFactor_ = s;
+        end
+        function g    = get.interp(this)
+            g = this.interp_;
+        end
+        function this = set.interp(this, s)
+            assert(ismember(s, { 'trilinear' 'nearestneighbour' 'sinc' 'spline' }));
+            this.interp_ = s;
+        end
         function g    = get.sessionData(this)
             g = this.sessionData_;
         end
@@ -105,7 +117,7 @@ classdef AbstractRegistrationBuilder
         function this = registerBijective(this)
             this = this.registerInjective;
         end
-        function this = registerInjective(this)       
+        function this = registerInjective(this)
             this = this.buildVisitor.registerInjective(this, this.proxyBuilder);
             this.cleanUpProxy(this.proxyBuilder);
         end
@@ -113,12 +125,22 @@ classdef AbstractRegistrationBuilder
             this = this.buildVisitor.registerSurjective(this, this.proxyBuilder);
             this.cleanUpProxy(this.proxyBuilder);
         end
-        function this = transformTrilinear(this)
-            this = this.buildVisitor.transformTrilinear(this);
+        function this = transform(this)
+            if (isdir(this.xfm))
+                this = this.transform4D;
+            end
+            this = this.buildVisitor.transform(this);
         end
-        function this = transformNearestNeighbor(this)
-            this = this.buildVisitor.transformNearestNeighbor(this);
-        end
+        function this = transform4D(this)
+            this.sourceImage = this.ensureTimeDependent(this.sourceImage, this.referenceImage.niftid.size(4));
+            this.referenceImage = this.ensureTimeIndep(this.referenceImage);
+            this.sourceImage.ensureSaved;
+            this.referenceImage.ensureSaved;
+            visitor = mlfsl.FlirtVisitor;
+            this = visitor.transform4D(this);
+            
+            deleteExisting(this.sourceImage.fqfn);
+        end   
         
         %% SUPPORT METHODS
         
@@ -190,10 +212,10 @@ classdef AbstractRegistrationBuilder
             b.blur = this.blurringFactor * this.petPointSpread;
             fp = [b.blurredFileprefix '_mcf'];
         end 
-        function p = petPointSpread(this)
+        function p  = petPointSpread(this)
             p = this.sessionData.petPointSpread;
         end
-        function p = pointSpread(this)
+        function p  = pointSpread(this)
             p = this.sessionData.petPointSpread;
             if (~isempty(this.sourceImage))
                 p = max(p, this.sourceImage.niftid.pixdim(1:3));
@@ -269,8 +291,7 @@ classdef AbstractRegistrationBuilder
             this.sourceImage = im.clone;
             this.referenceImage = ref;
             this = this.buildVisitor.transformTrilinear(this);
-        end
-        
+        end        
         function prod = buildWarped(this, varargin)
             ip = inputParser;
             addParameter(ip, 'sourceImage',    [], @(x) isa(x, 'mlfourd.ImagingContext'));
@@ -347,17 +368,19 @@ classdef AbstractRegistrationBuilder
     %% PROTECTED
     
     properties (Access = protected)
-        sessionData_
+        blurringFactor_ = 1
         buildVisitor_
-        sourceWeight_
-        referenceWeight_
-        sourceImage_
-        referenceImage_
+        interp_ = 'trilinear'
         product_
+        referenceImage_
+        referenceWeight_
+        sessionData_
+        sourceImage_
+        sourceWeight_
         xfm_
     end
     
-    methods (Access = protected)         
+    methods (Access = protected)
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 

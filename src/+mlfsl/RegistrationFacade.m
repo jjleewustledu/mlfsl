@@ -132,7 +132,7 @@ classdef RegistrationFacade < handle
             addRequired(ip, 'src',  @(x) isa(x, 'mlfourd.ImagingContext'));
             addRequired(ip, 'xfms', @iscell);
             addRequired(ip, 'refs', @iscell);
-            addOptional(ip, 'interp', 'transformTrilinear', @ischar);
+            addOptional(ip, 'interp', 'trilinear', @ischar);
             parse(ip, src, xfms, refs, varargin{:});
             
             assert(isa(src, 'mlfourd.ImagingContext'));
@@ -141,14 +141,15 @@ classdef RegistrationFacade < handle
             cellfun(@(x) assert(lexist(x, 'file')), xfms);
             cellfun(@(x) assert(isa(x, 'mlfourd.ImagingContext')), refs);
             
-            mrb  = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
+            msrb = mlfsl.MultispectralRegistrationBuilder('sessionData', this.sessionData);
             prod = src;
             for idx = 1:length(xfms)
-                mrb.xfm = xfms{idx};
-                mrb.sourceImage = prod;
-                mrb.referenceImage = refs{idx};
-                mrb  = mrb.(ip.Results.interp);
-                prod = mrb.product;
+                msrb.xfm = xfms{idx};
+                msrb.sourceImage = prod;
+                msrb.referenceImage = refs{idx};
+                msrb.interp = ip.Results.interp;
+                msrb = msrb.transform;
+                prod = msrb.product;
             end
         end
         function xfm  = transformation(this, varargin)
@@ -177,7 +178,7 @@ classdef RegistrationFacade < handle
             xfms(1) = [];
             xfm = this.concatTransformations(xfms{:});
         end
-        function product = registerTalairachWithPet(this)
+        function product = registerTalairachOnPet(this)
             %% REGISTERTALAIRACHWITHPET
             %  @return prod is a struct with products as fields.
         end 
@@ -203,6 +204,7 @@ classdef RegistrationFacade < handle
     %% PROTECTED
     
     properties (Access = protected)
+        prexfm_
         sessionData_
         registrationBuilder_
         

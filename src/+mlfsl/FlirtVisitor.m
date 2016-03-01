@@ -153,20 +153,31 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             bldr.xfm          = opts.init;
             xfm               = opts.init;
         end
-        function bldr       = transformTrilinear(this, bldr)
+        function bldr       = transform(this, bldr)
+            if (isdir(bldr.xfm))
+                bldr = this.transform4D(bldr);
+                return
+            end
             opts         = mlfsl.FlirtOptions;
             opts.in      = this.assignIn(bldr);
             opts.ref     = this.assignRef(bldr);
             opts.init    = bldr.xfm;
+            opts.interp  = bldr.interp;
             bldr.product = this.transform__(opts);
         end 
-        function bldr       = transformNearestNeighbor(this, bldr)
-            opts         = mlfsl.FlirtOptions;
-            opts.interp  = 'nearestneighbour';
-            opts.in      = this.assignIn(bldr);
-            opts.ref     = this.assignRef(bldr);
-            opts.init    = bldr.xfm;
-            bldr.product = this.transform__(opts);
+        function bldr       = transform4D(this, bldr)
+            opts.input          = this.assignIn(bldr);
+            opts.ref            = this.assignRef(bldr);
+            opts.output         = this.mcf_fqfn(bldr.sourceImage);
+            opts.transformation = bldr.xfm;
+            bldr.product        = this.applyxfm4D__(opts);
+            bldr.product.addLog('mlfsl.FlirtVisitor.transform4D');
+            bldr.product.addLog(bldr.sourceImage.getLog.contents);
+            
+            if (strcmp(bldr.interp, 'nearestneighbor'))
+                p = bldr.product.numericalNiftid;
+                bldr.product = p.binarized;
+            end
         end
         
         %% LEGACY
@@ -284,19 +295,6 @@ classdef FlirtVisitor < mlfsl.FslVisitor
     %% PROTECTED
     
     methods (Access = 'protected')
-        function omat = flirt__(this, opts)
-            assert(isa(opts, 'mlfsl.FlirtOptions'));
-            this.cmd('flirt', opts);
-            omat = opts.omat;
-        end
-        function prod = mcflirt__(this, opts)
-            assert(isa(opts, 'mlfsl.McflirtOptions'));
-            [~,~,c] = this.cmd('mcflirt', opts);
-            prod = mlfourd.ImagingContext.load([opts.in this.MCF_SUFFIX this.filetypeExt]);
-            lg = this.getLog(opts.in);
-            prod.addLog(['From FlirtVisitor.mclfirt__.opts.in\n' lg.contents]);
-            prod.addLog(c);
-        end
         function prod = applyxfm4D__(this, opts)
             assert(isstruct(opts));
             opts = this.ensureFieldsAreFilenames(opts);
@@ -306,17 +304,6 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             lg = this.getLog(opts.input);
             prod.addLog(['From FlirtVisitor.applyxfm4D__.opts.input:\n' lg.contents]);
             prod.addLog(c);            
-        end
-        function prod = transform__(this, opts)
-            assert(isa(opts, 'mlfsl.FlirtOptions'));
-            opts.applyxfm = true;
-            opts.omat = [];
-            [~,~,c] = this.cmd('flirt', opts); 
-            prod = mlfourd.ImagingContext.load( ...
-                this.thisOnThatImageFilename(opts.in, opts.init));
-            lg = this.getLog(opts.in);
-            prod.addLog(['From FlirtVisitor.transform__.opts.in:\n' lg.contents]);
-            prod.addLog(c);
         end
         function opts = concatTransformOptions__(this, varargin)
             cellfun(@(x) assert( ismember('init', properties(x))), varargin);
@@ -337,6 +324,11 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             this.cmd('convert_xfm', opts); 
             xfm = opts.omat;
         end
+        function omat = flirt__(this, opts)
+            assert(isa(opts, 'mlfsl.FlirtOptions'));
+            this.cmd('flirt', opts);
+            omat = opts.omat;
+        end
         function opts = inverseTransformOptions__(this, opts)
             assert( ismember('init', properties(opts)));
             assert(~isempty(opts.init));
@@ -352,6 +344,37 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             assert(~isempty(opts.omat));
             this.cmd('convert_xfm', opts);
             xfm = opts.omat;
+        end
+        function fqdn = mat_fqdn(this, ic)
+            assert(isa(ic, 'mlfourd.ImagingContext'));
+            fqdn = [ic.fqfileprefix this.XFM_SUFFIX]; 
+        end
+        function fqfn = mcf_fqfn(this, ic)
+            assert(isa(ic, 'mlfourd.ImagingContext'));
+            fqfn = [ic.fqfileprefix this.MCF_SUFFIX ic.filesuffix];
+        end
+        function fqdn = mcf_mat_fqdn(this, ic)
+            assert(isa(ic, 'mlfourd.ImagingContext'));            
+            fqdn = [ic.fqfileprefix this.MCF_SUFFIX this.XFM_SUFFIX]; 
+        end
+        function prod = mcflirt__(this, opts)
+            assert(isa(opts, 'mlfsl.McflirtOptions'));
+            [~,~,c] = this.cmd('mcflirt', opts);
+            prod = mlfourd.ImagingContext.load([opts.in this.MCF_SUFFIX this.filetypeExt]);
+            lg = this.getLog(opts.in);
+            prod.addLog(['From FlirtVisitor.mclfirt__.opts.in\n' lg.contents]);
+            prod.addLog(c);
+        end
+        function prod = transform__(this, opts)
+            assert(isa(opts, 'mlfsl.FlirtOptions'));
+            opts.applyxfm = true;
+            opts.omat = [];
+            [~,~,c] = this.cmd('flirt', opts); 
+            prod = mlfourd.ImagingContext.load( ...
+                this.thisOnThatImageFilename(opts.in, opts.init));
+            lg = this.getLog(opts.in);
+            prod.addLog(['From FlirtVisitor.transform__.opts.in:\n' lg.contents]);
+            prod.addLog(c);
         end
     end
     

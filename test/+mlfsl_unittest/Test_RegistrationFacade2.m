@@ -1,8 +1,8 @@
-classdef Test_RegistrationFacade < matlab.unittest.TestCase
+classdef Test_RegistrationFacade2 < matlab.unittest.TestCase
 	%% TEST_REGISTRATIONFACADE 
 
-	%  Usage:  >> results = run(mlfsl_unittest.Test_RegistrationFacade)
- 	%          >> result  = run(mlfsl_unittest.Test_RegistrationFacade, 'test_dt')
+	%  Usage:  >> results = run(mlfsl_unittest.Test_RegistrationFacade2)
+ 	%          >> result  = run(mlfsl_unittest.Test_RegistrationFacade2, 'test_dt')
  	%  See also:  file:///Applications/Developer/MATLAB_R2014b.app/help/matlab/matlab-unit-test-framework.html
 
 	%  $Revision$
@@ -147,7 +147,7 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
 
 	methods (Test)
         function test_registerTalairachOnPet(this)
-            studyd = mlpipeline.StudyDataSingletons.instance('raichle');
+            studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
             sessd = mlraichle.SessionData( ...
                 'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
@@ -157,31 +157,28 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
             
             if (this.view)
                 product.talairach_on_fdg.view(product.fdg.fqfn);
-                %product.talairach_on_ho1.view(product.ho1.fqfn);
-                %product.talairach_on_oo1.view(product.oo1.fqfn);
-                %product.talairach_on_oc1.view(product.oc1.fqfn);
+                product.talairach_on_ho1.view(product.ho1.fqfn);
+                product.talairach_on_oo1.view(product.oo1.fqfn);
+                product.talairach_on_oc1.view(product.oc1.fqfn);
             end
         end
         function test_masksTalairachOnProduct(this)
-            studyd = mlpipeline.StudyDataSingletons.instance('raichle');
+            studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
             sessd = mlraichle.SessionData( ...
                 'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);
-            sf = mlsurfer.SurferFacade(                 'sessionData', sessd);             
-            load(fullfile(sessd.sessionPath, 'mlraichle.RegistrationFacade.checkpoint_registerTalairachWithPet2_20160223T024325.mat'));
+            msk = mlfourd.ImagingContext(fullfile(rf.sessionData.sessionPath, 'V1', 'wmparc.mgz'));  
+            msk = rf.;
+            product.fdg = mlfourd.PETImagingContext(fullfile(this.sessionPath, 'NP995_09fdg_v1_flip2_crop_mcf.nii.gz'));
+            product.xfm_tal_on_fdg = fullfile(this.sessionPath, 'T1_on_NP995_09fdg_v1_flip2_crop_434343fwhh_mcf.mat');
             
-            product.prexfm_tal_on_fdg = fullfile(sessd.sessionPath, 'V1', 'T1_on_NP995_09fdg_v1_flip2_crop_434343fwhh_mcf_sumt_434343fwhh.mat');            
-            deleteExisting(fullfile(sessd.sessionPath, 'V1', 'wmparc_binarized_cerebrum.nii.gz'));
-            msk = sf.maskRegion(@sf.maskWmparc, 'cerebrum');
-            msk.noclobber = false;
             masks = rf.masksTalairachOnProduct2(msk, product); 
             if (this.view)
                 masks.talairach_on_fdg.view(product.fdg.fqfilename);
             end
-            masks.talairach_on_fdg.fileprefix = 'test_masksTalairachOnProduct';
-            masks.talairach_on_fdg.noclobber = false;
-            masks.talairach_on_fdg.save;
+            masks.fileprefix = '';
+            masks.save;
         end
         function test_repairTalairachOnPetFrame(this)
             studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
@@ -189,7 +186,7 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
                 'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb); 
-            product.fdg = mlpet.PETImagingContext(fullfile(this.sessionPath, 'NP995_09fdg_v1_flip2_crop_mcf.nii.gz'));
+            product.fdg = mlfourd.PETImagingContext(fullfile(this.sessionPath, 'NP995_09fdg_v1_flip2_crop_mcf.nii.gz'));
             
             tal1 = rf.repairTalairachOnPetFrame(product.fdg, 23);
             if (this.vew)
@@ -205,7 +202,7 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
             product.fdg = mlpet.PETImagingContext(fullfile(this.sessionPath, 'NP995_09fdg_v1_flip2_crop_mcf.nii.gz'));
             mask = mlfourd.ImagingContext(fullfile(this.sessionPath, ''));
             
-            %[mask, tal1] = rf.repairMaskInSitu(product.fdg, , , 23);
+            [mask, tal1] = rf.repairMaskInSitu(product.fdg, , , 23);
             if (this.view)
                 tal1.view(mask.fqfilename, produt.fdg);
             end
@@ -280,7 +277,7 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
             refs = {this.tr this.ho this.t2};
             t = this.testFacade.transform(this.oc, xfms, refs);
             control_niftid = mlfourd.NIfTId.load( ...
-                fullfile(this.petPath, 'p7377oc1_frames', 'Test_RegistrationFacade.test_transform4.nii.gz'));
+                fullfile(this.petPath, 'p7377oc1_frames', 'Test_RegistrationFacade2.test_transform4.nii.gz'));
             if (this.view)
                 t.view(control_niftid.fqfn);
             end
