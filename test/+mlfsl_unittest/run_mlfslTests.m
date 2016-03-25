@@ -7,8 +7,6 @@ run(mlfsl_unittest.Test_SessionData)
 run(mlfsl_unittest.Test_HO15ModelLayer)
 run(mlfsl_unittest.Test_ModelLayer)
 run(mlfsl_unittest.Test_KineticsModelLayer)
-run(mlfsl_unittest.Test_FlirtVisitor)
-run(mlfsl_unittest.Test_FlirtVisitor)
 
 run(mlfsl_unittest.Test_MultispectralRegistrationBuilder)
 run(mlpet_unittest.Test_PETRegistrationBuilder)
