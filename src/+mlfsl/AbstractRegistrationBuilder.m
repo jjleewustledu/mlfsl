@@ -173,7 +173,7 @@ classdef AbstractRegistrationBuilder
             end
             n.img = z;
             n.fileprefix = sprintf('%s%s%i', ic.fileprefix, '_x', lent);
-            ic = this.sessionData.repackageImagingContext(n, class(ic));
+            ic = mlfourd.ImagingContext.repackageImagingContext(n, class(ic));
         end
         function ic = ensureTimeIndep(~, ic)
             if (ic.rank < 4)

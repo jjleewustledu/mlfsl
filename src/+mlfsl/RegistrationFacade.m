@@ -219,7 +219,7 @@ classdef RegistrationFacade < handle
         tr_
     end
     
-    methods (Static, Access = protected)        
+    methods (Static, Access = protected)
         function c   = annihilateEmptyCells(c)
             for cidx = length(c):-1:1
                 if (isempty(c{cidx}))
@@ -240,6 +240,12 @@ classdef RegistrationFacade < handle
     end
     
     methods (Access = protected)   
+        function ic         = assembleImagingWeight(~, ic1, rng1, ic2, rng2)
+            nn1 = ic1.numericalNiftid;
+            nn2 = ic2.numericalNiftid;
+            nn  = nn1*rng1 + nn2*rng2;
+            ic  = mlfourd.ImagingContext.repackageImagingContext(nn, class(ic1));
+        end
         function [prod,xfm] = petRegisterAndInvertTransform(this, src, ref)
             if (isempty(src) || isempty(ref))
                 prod = [];
