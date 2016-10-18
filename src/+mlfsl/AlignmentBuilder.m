@@ -21,17 +21,20 @@ classdef (Abstract) AlignmentBuilder
  	 
 	properties (Abstract)
         sessionPath
-        product        % needed by FlirtVisitor
+        sourceWeight
+        referenceWeight
+        sourceImage    % needed by FlirtVisitor
         referenceImage % "
-        xfm            % "
-        inweight
-        refweight
+        product        % "
+        xfm            
     end 
     
     methods 
         
         %% Empty, to be subclassed by concrete builders
         
+        function this = buildAligned(this)
+        end
         function this = buildBetted(this)
         end
         function this = buildBiasCorrected(this)
@@ -40,11 +43,9 @@ classdef (Abstract) AlignmentBuilder
         end
         function this = buildFieldCorrected(this)
         end
-        function this = buildFiltered(this)
+        function this = buildInverseAligned(this)
         end
-        function this = buildFlirted(this)
-        end
-        function this = buildFnirted(this)
+        function this = buildInverseTransformed(this)
         end
         function this = buildMeanVolume(this)
         end
@@ -52,15 +53,11 @@ classdef (Abstract) AlignmentBuilder
         end
         function this = buildMotionCorrected(this)
         end
-        function this = buildResampled(this)
+        function this = buildTransformed(this)
         end
-        function this = applyXfm(this)
+        function this = buildWarped(this)
         end
-        function this = applywarp(this)
-        end
-        function this = invertXfm(this)
-        end
-        function obj  = clone(this) %#ok<MANU>
+        function obj  = clone(~)
             obj = [];
         end
     end

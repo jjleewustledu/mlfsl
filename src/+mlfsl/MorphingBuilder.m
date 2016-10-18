@@ -75,8 +75,7 @@ classdef MorphingBuilder < mlmr.MRAlignmentBuilder
     
     methods
         function this = buildBetted2Betted(this)
-            visit = mlfsl.FlirtVisitor;
-            this  = visit.align6DOF(this);
+            this = this.buildVisitor.alignMultispectral(this);
             
             nvisit       = mlfsl.FnirtVisitor;
             this.xfm     = this.xfm;
@@ -93,8 +92,7 @@ classdef MorphingBuilder < mlmr.MRAlignmentBuilder
         function this = buildFnirted2standard(this)
             bproduct            = this.product;
             this.referenceImage = this.standardImage;
-            visit               = mlfsl.FlirtVisitor;
-            this                = visit.align6DOF(this);
+            this                = this.buildVisitor.alignMultispectral(this);
             
             nvisit       = mlfsl.FnirtVisitor;
             this.xfm     = this.xfm;
@@ -115,8 +113,7 @@ classdef MorphingBuilder < mlmr.MRAlignmentBuilder
             
             bproduct            = this.product;
             this.referenceImage = this.bettedStandard; 
-            visit               = FlirtVisitor;
-            this                = visit.align6DOF(this);
+            this                = this.buildVisitor.alignMultispectral(this);
             
             nvisit       = FnirtVisitor;
             this.xfm     = this.xfm;  %% KLUDGE to set private variables

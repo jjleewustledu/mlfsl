@@ -85,27 +85,27 @@ classdef FlirtOptions < mlfsl.FslOptions
         end
         
 		function this = set.in(this, obj)
-			this.in = imcast(obj, 'fqfileprefix');
+            this.in = imcast(obj, 'fqfilename');
 		end
 		function this = set.ref(this, obj)
-			this.ref = imcast(obj, 'fqfileprefix');
+			this.ref = imcast(obj, 'fqfilename');
 		end
 		function this = set.init(this, obj)
-			this.init = this.xfmName(obj);
+			this.init = this.transformFilename(obj);
         end
 		function this = set.omat(this, obj)
             if (isempty(obj))
                 this.omat = []; return; end
-			this.omat = this.xfmName(obj);
+			this.omat = this.transformFilename(obj);
 		end
         function val  = get.omat(this)
             val = [];
             if (~this.applyTrans && isempty(this.omat) && ~isempty(this.ref))
-                val = this.xfmName(this.in, this.ref);
+                val = this.transformFilename(this.in, this.ref);
             end
         end
 		function this = set.out(this, obj)
-			this.out = imcast(obj, 'fqfileprefix');
+			this.out = imcast(obj, 'fqfilename');
         end
         function val  = get.out(this)
             val = this.out;
@@ -118,25 +118,25 @@ classdef FlirtOptions < mlfsl.FslOptions
             end
         end
         function this = set.refweight(this, obj)
-			this.refweight = imcast(obj, 'fqfileprefix');
+			this.refweight = imcast(obj, 'fqfilename');
 		end
 		function this = set.inweight(this, obj)
-			this.inweight = imcast(obj, 'fqfileprefix');        	
+			this.inweight = imcast(obj, 'fqfilename');
 		end
 		function this = set.wmseg(this, obj)
-			this.wmseg = imcast(obj, 'fqfileprefix');
+			this.wmseg = imcast(obj, 'fqfilename');
 		end
 		function this = set.wmcoords(this, obj)
-			this.wmcoords = imcast(obj, 'fqfileprefix'); 
+			this.wmcoords = imcast(obj, 'fqfilename');
 		end
 		function this = set.wmnorms(this, obj)
-			this.wmnorms = imcast(obj, 'fqfileprefix'); 
+			this.wmnorms = imcast(obj, 'fqfilename');
 		end
 		function this = set.fieldmap(this, obj)
-			this.fieldmap = imcast(obj, 'fqfileprefix'); 
+			this.fieldmap = imcast(obj, 'fqfilename');
 		end
 		function this = set.fieldmapmask(this, obj)
-			this.fieldmapmask = imcast(obj, 'fqfileprefix');
+			this.fieldmapmask = imcast(obj, 'fqfilename');
 		end
     end
 		

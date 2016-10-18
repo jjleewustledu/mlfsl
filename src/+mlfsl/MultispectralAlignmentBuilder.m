@@ -32,23 +32,25 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
             assert(isa(pet, 'mlpet.PETImagingContext')); 
             assert(isa(mr,  'mlmr.MRImagingContext')); 
             pet0                  = pet.clone;
-            this.sourceImage      = this.blurred(this.timeSummed(pet));
+            pet.timeSummed; 
+            pet.blurred;
+            this.sourceImage      = pet;
             this.referenceImage   = mr;
             
-            visit = mlfsl.FlirtVisitor;
-            this  = visit.alignMultispectral(this);             
+            this = this.buildVisitor.alignMultispectral(this);             
             this.sourceImage = pet0;            
-            this  = visit.applyTransformOfBuilder(this);
+            this = this.buildVisitor.transformTrilinear(this);
             this.viewTogether(this.product, this.referenceImage);
         end
         function this = alignMR2PET(this, mr, pet)
             assert(isa(mr,  'mlmr.MRImagingContext'));
             assert(isa(pet, 'mlpet.PETImagingContext'));
             this.sourceImage      = mr;
-            this.referenceImage   = this.blurred(this.timeSummed(pet));
+            pet.timeSummed; 
+            pet.blurred;
+            this.referenceImage   = pet;
             
-            visit = mlfsl.FlirtVisitor;
-            this  = visit.alignMultispectral(this);
+            this = this.buildVisitor.alignMultispectral(this);
             this.viewTogether(this.product, this.referenceImage);
         end
         function this = alignByInverseTransform(this, nii, niiRef)
@@ -57,14 +59,15 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
                 nii0                = nii.clone;
                 niiRef0             = niiRef.clone;
                 this.sourceImage    = niiRef;
-                this.referenceImage = this.blurred(this.timeSummed(nii));
+                nii.timeSummed;
+                nii.blurred;
+                this.referenceImage = nii;
                 
-                visit = mlfsl.FlirtVisitor;
-                this  = visit.alignMultispectral(this);
-                this  = visit.inverseTransformOfBuilder(this);            
+                this = this.buildVisitor.alignMultispectral(this);
+                this = this.buildVisitor.invertTransform(this);            
                 this.sourceImage    = nii0;
-                this.referenceImage = niiRef0;
-                this  = visit.applyTransformOfBuilder(this);
+                this.referenceImage = niiRef; %0;
+                this = this.buildVisitor.transformTrilinear(this);
                 this.viewTogether(this.product, niiRef0);
                 return
             end
@@ -72,20 +75,21 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
                 assert(isa(niiRef, 'mlpet.PETImagingContext'))
                 nii0                = nii.clone;
                 niiRef0             = niiRef.clone;
-                this.sourceImage    = this.blurred(this.timeSummed(niiRef));
+                niiRef.timeSummed;
+                niiRef.blurred;
+                this.sourceImage    = niiRef;
                 this.referenceImage = nii;
                 
-                visit = mlfsl.FlirtVisitor;
-                this  = visit.alignMultispectral(this);
-                this  = visit.inverseTransformOfBuilder(this);
+                this = this.buildVisitor.alignMultispectral(this);
+                this = this.buildVisitor.invertTransform(this);
                 this.sourceImage    = nii0;
-                this.referenceImage = niiRef0;
-                this  = visit.applyTransformOfBuilder(this);
+                this.referenceImage = niiRef; %0;
+                this = this.buildVisitor.transformTrilinear(this);
                 this.viewTogether(this.product, niiRef0);
                 return
             end
             error('mlfsl:unsupportedParamType', ...
-                  'MultispectralAlignmentDirector.align.nii has unsupported type %s', class(nii));
+                  'MultispectralAlignmentBuilder.align.nii has unsupported type %s', class(nii));
         end
 		  
  		function this = MultispectralAlignmentBuilder(varargin)
@@ -95,6 +99,9 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
  			this = this@mlfsl.AlignmentBuilderPrototype(varargin{:});             
  		end
         function viewTogether(~, varargin)
+            if (~mlpipeline.PipelineRegistry.instance.verbose)
+                return;
+            end
             assert(~isempty(varargin));
             assert(isa(varargin{1}, 'mlfourd.ImagingContext'));
             niid = varargin{1}.niftid;
@@ -108,23 +115,6 @@ classdef MultispectralAlignmentBuilder < mlfsl.AlignmentBuilderPrototype
             end
         end
  	end 
-
-    %% PROTECTED
-    
-    methods (Access = 'protected')
-        function ic = blurred(~, ic)
-            assert(isa(ic, 'mlfourd.ImagingContext'));
-            if (~lstrfind(ic.niftid.fileprefix, 'fwhh'))
-                ic = ic.blurred;
-            end
-        end
-        function ic = timeSummed(~, ic)
-            assert(isa(ic, 'mlfourd.ImagingContext'));
-            if (~lstrfind(ic.niftid.fileprefix, '_sumt'))
-                ic = ic.timeSummed;
-            end
-        end
-    end
     
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end

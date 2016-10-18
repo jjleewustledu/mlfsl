@@ -404,7 +404,7 @@ classdef ICHemorrhageUnc
 
         function nii = downsample(this, nii0)
             import mlfourd.*;
-            assert(isa(nii0, 'mlfourd.NIfTIInterface'));
+            assert(isa(nii0, 'mlfourd.INIfTI'));
             assert(all(nii0.size == this.foreground.size));
             assert(    nii0.rank == this.foreground.rank);
             blocks = nii0.size ./ this.size;

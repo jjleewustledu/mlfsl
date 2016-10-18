@@ -20,7 +20,34 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
         segmentationLabel
         regionLabel
     end
-
+    
+    methods %% set/get
+        function pth  = get.transformationsPath(this)
+            pth = fullfile(this.fslPath, this.fslRegistry.transformationsFolder, '');
+        end   
+        function cfg  = get.fnirtCfg(this) %#ok<MANU>
+            cfg = '';
+        end
+        function sfx  = get.warpcoefSuffix(this) %#ok<MANU>
+            sfx = '_warpcoef';
+        end
+        function sfx  = get.invwarpSuffix(this) %#ok<MANU>
+            sfx = '_invwarpcoef';
+        end
+        function sfx  = get.warpedSuffix(this) %#ok<MANU>
+            sfx = '_warped';
+        end
+        function sfx  = get.petFilterSuffix(this) %#ok<MANU>
+            sfx = '';
+        end
+        function lbl  = get.segmentationLabel(this) %#ok<MANU>
+            lbl = 'rois_seg';
+        end 
+        function lbl  = get.regionLabel(this) %#ok<MANU>
+            lbl = '_region';
+        end
+    end
+    
     methods (Static)
         function this    = createFromConverter(cvtr)
             this = mlfsl.FnirtBuilder(cvtr);
@@ -31,10 +58,10 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
                    mlsurfer.SurferDicomConverter.createFromModalityPath(mpth));
         end
         function           makeFnirt(bldr, channels)
-            
             %% MAKEFNIRT uses . as its work directory
             %  Usage:  makeFnirt(filter_str, noEp2d)
-            %                    ^ string    ^ logical                 
+            %                    ^ string    ^ logical   
+            
             import mlfsl.* mlsystem.*;
             fnb = FnirtBuilder(bldr);
             dt = DirTools(bldr.fslPath);
@@ -102,15 +129,16 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             FnirtBuilder.makePetROIs
         end % static makeFnirt2        
         function str2    = makeFnirt3
+            
             import mlfsl.*;
              str        = FnirtBuilder.tagROIs('hosum_rot', 'qcbf');
             [strR,strL] = FnirtBuilder.prepCftool(str);
              str2       = struct('raw', str, 'fittedR', strR, 'fittedL', strL);
         end % static makeFnirt3        
         function [s,r]   = makeFast(filtStr, channels)
-            
             %% MAKEFAST calls FSL's fast segmentations with t1, t2, flair, swi, ...
             %  Usage:  [s,r] = makeFast(patient_path, channels)
+            
             import mlfsl.* mlfourd.*;
             if (exist('filtStr','var'))
                 fastf = FastBuilder(filtStr);
@@ -124,8 +152,8 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             end
         end % static makeFast        
         function [s,r]   = makeROIs(csf_class_idx, bldr)
-            
             %% MAKEROIS
+            
             import mlfsl.* mlfourd.*;
             N_CHANNELS = 4;
             s = -1;  r = 'FnirtBuilder.makeROIs:  entering method function'; %#ok<NASGU>
@@ -145,23 +173,23 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             for c = 0:N_CHANNELS-1 %#ok<FORFLG>
                 if (didx ~= c)
                     rois_seg = fnb.segmentationLabel;
-                    [s,r] = FnirtBuilder.fslmaths([z.fqfileprefix ' -add ' rois_seg '_' num2str(c) ' ' z.fqfileprefix]); %#ok<NASGU,ASGLU>
+                    [s,r] = FnirtBuilder.fslmaths([z.fqfileprefix ' -add ' rois_seg '_' num2str(c) ' ' z.fqfileprefix]); %#ok<ASGLU>
                 end
             end
             movefile(filename(z.fqfileprefix), fnb.nocsf('fqfn'), 'f');
             
             % warp nocsf to atlas
-            [s,r] = fnb.applywarp(fnb.nocsf('fqfp'), fnb.mni('fqfp'), fnb.warpcoef(fnb.reference)); %#ok<NASGU,ASGLU>
+            [s,r] = fnb.applywarp(fnb.nocsf('fqfp'), fnb.mni('fqfp'), fnb.warpcoef(fnb.referenceImage)); %#ok<ASGLU>
             
             % update atlas
             copyfile(           fnb.mni('fqfn'), '.', 'f');
             fileattrib(         fnb.mni('fqfn'), '+w')
             noCsfOnStd = fnb.warped(fnb.nocsf('fqfn'));
             
-            [s,r]         = FnirtBuilder.fslmaths([noCsfOnStd          ' -thrP ' num2str(fnb.fslRegistry.confidenceInterval) ' ' noCsfOnStd]); %#ok<NASGU,ASGLU>
-            [s,r]         = FnirtBuilder.fslmaths([fnb.mni('fqfp') ' -mul ' noCsfOnStd ' ' fnb.mni]); %#ok<NASGU,ASGLU>
+            [s,r]         = FnirtBuilder.fslmaths([noCsfOnStd          ' -thrP ' num2str(fnb.fslRegistry.confidenceInterval) ' ' noCsfOnStd]); %#ok<ASGLU>
+            [s,r]         = FnirtBuilder.fslmaths([fnb.mni('fqfp') ' -mul ' noCsfOnStd ' ' fnb.mni]); %#ok<ASGLU>
             
-            [s,r]         = FnirtBuilder.fslmaths([noCsfOnStd '          -bin ' noCsfOnStd]); %#ok<NASGU,ASGLU>
+            [s,r]         = FnirtBuilder.fslmaths([noCsfOnStd '          -bin ' noCsfOnStd]); %#ok<ASGLU>
             [s,r]         = FnirtBuilder.fslmaths([fnb.mni('fqfp') ' -mas ' noCsfOnStd ' MNI-maxprob-nocsf']);
             
             %FnirtBuilder.fslmaths(['MNI-maxprob-thr0-2mm -mas rois_seg_nocsf_warped MNI-maxprob-nocsf']);
@@ -179,15 +207,15 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             
             bepiMaskWarped = fnb.warped(mepi, 'fp');
                              fnb.applywarp(mepi, fnb.standardReference, fnb.warpcoef(bt1), fnb.xfmName(bepi, bt1), bepiMaskWarped);
-            [s,r]          = FnirtBuilder.fslmaths([bepiMaskWarped ' -thrP ' num2str(fnb.fslRegistry.confidenceInterval) ' ' bepiMaskWarped]); %#ok<NASGU,ASGLU>
+            [s,r]          = FnirtBuilder.fslmaths([bepiMaskWarped ' -thrP ' num2str(fnb.fslRegistry.confidenceInterval) ' ' bepiMaskWarped]); %#ok<ASGLU>
             [s,r]          = FnirtBuilder.fslmaths([fnb.mni '  -mul  ' bepiMaskWarped ' ' fnb.mni]);
         end % static restrictEpiROIs        
         function [s,r]   = separateSegmentations(plusEp2d, plusHO, bldr)
-            
             %% SEPARATEROIS separates segmentation maps by integer map intensities.
             %  Inverse-warps segmentations to T1, inverse-transforms to, e.g., EP2D, H15O
             %  Usage:   [s,r] = FnirtBuilder.separateSegmentations(plusEp2d, plusHO)
             %                                                     ^         ^ logical
+            
             import mlfsl.* mlfourd.*;
             if (~exist('plusEp2d','var')); plusEp2d = true; end
             if (~exist('plusHO',  'var')); plusHO   = true; end
@@ -199,7 +227,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             if (plusHO)
                    ho = fnb.inFsl([fnb.h15o fnb.petFilterSuffix]);
             end
-                  ref = fnb.inFsl(fnb.builder_.reference);
+                  ref = fnb.inFsl(fnb.builder_.referenceImage);
                    t1 = fnb.inFsl(fnb.t1);
                atlnii = NIfTI(fnb.standardAtlas);
             
@@ -247,6 +275,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             end
         end % static separateSegmentations        
         function [s,r]   = makeInvwarpedROIs(bldr)
+            
             import mlfsl.*;
             fnb       = FnirtBuilder(bldr);
             epm      = fnb.inFsl(fnb.ep2dMean);
@@ -256,7 +285,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             
             % atlas to epi
             [~,r] = fnb.applywarp(fnb.mni, ref, invwarp_, '',  ...
-                    fnb.imageObject(roi_fp, fnb.t1)); %#ok<NASGU>
+                    fnb.imageObject(roi_fp, fnb.t1));  %#ok<ASGLU>
             opts      = FlirtOptions;
 			opts.ref  = bepm;
 			opts.in   = fnb.imageObject(roi_fp, fnb.t1);
@@ -272,8 +301,8 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             fnb.applyTransform(opts);
         end % static makeInvwarpedROIs        
         function           makePetROIs(bldr)
-            
             %% MAKEPETROIS
+            
             import mlfsl.*;
             fnb  = FnirtBuilder(bldr);
             ho  = fnb.inFsl(fnb.h15o);
@@ -295,14 +324,14 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             fnb.applyTransform(opts);
         end % static makePetROIs        
         function [s,r]   = remakeRight(bldr)
-            
             %% REMAKERIGHT works ab initio or repeatedly
+            
             import mlfsl.*;
             fnb   = FnirtBuilder(bldr);
             rhs   = fnb.inFsl(fnb.right);
             t1    = fnb.inFsl(fnb.t1);
             [s,r] = fnb.applywarp(fnb.right('fqfp'), ...
-                                  fnb.inFsl(bldr.reference), ...
+                                  fnb.inFsl(bldr.referenceImage), ...
                                   fnb.inFsl([t1 fnb.invwarpSuffix]), ...
                                           '', ...
                                   fnb.imageObject(rhs, t1));                 
@@ -314,7 +343,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
 			opts.ref  = fnb.inFsl(bepm);
 			opts.in   = fnb.imageObject(  rhs, t1);
 			opts.out  = fnb.imageObject(  rhs, epm);
-			opts.init = fnb.xfmName(bldr.reference, bepm);
+			opts.init = fnb.xfmName(bldr.referenceImage, bepm);
                         fnb.applyTransform(opts);      
             
             ho        = fnb.inFsl(    fnb.h15o);
@@ -326,30 +355,30 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
                         fnb.applyTransform(opts);
         end % static remakeRight 
         function [ra,la] = splitAxis(axis)
-            
             %% SPLITAXIS maintains the internal convention of listing right-sided ROIs first
+            
             Nhalf = length(axis)/2;
             ra    = axis(1:Nhalf);
             la    = axis(Nhalf+1:end);
         end % static splitAxis      
         function fn      = diary_fn
+            
             fn = ['FnirtBuilder_tagROIs_' mlfsl.Np797Registry.ensurePnum(pwd) '.log'];
         end % static diary_fn               
         function fn      = xfmOnStd(fp)
-            
             %% XFMONSTD affine transformation on standard atlas
+            
             import mlfsl.*;
             fn  = fullfile(this.fslPath, this.fslRegistry.transformationsFolder, [FnirtBuilder.fpOnStd(fp) mlfsl.FlirtVisitor.XFM_SUFFIX]);
         end % static xfmOnStd        
         function fp      = fpOnStd(fp)
-            
             %% FPONSTD fileprefix on standard atlas
-            [~,fp,~] =  filepartsx(fp, mlfourd.NIfTIInterface.FILETYPE_EXT);
+            
+            [~,fp,~] =  filepartsx(fp, mlfourd.INIfTI.FILETYPE_EXT);
                imaging   = ImagingComponent;
                fp    = [fileprefix(fp) '_on_' imaging.mniStandard('brain','fp')];
         end % static fpOnStd
-        function [str,pubR,pubL]                      = tagROIs(pdata_fp, edata_fp)
-            
+        function [str,pubR,pubL] = tagROIs(pdata_fp, edata_fp)
             %% TAGROIS
             %  Usage:  [data_struct, publisher] = ...
             %           FnirtBuilder.tagROIs(pet_fileprefix, ep2d_fileprefix);
@@ -361,6 +390,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             %                      erois         {pet_nii   ep2d_nii}
             %                      browsers      {pet_niib  ep2d_niib}
             %                      blurs         {pet_flur  ep2d_blur}
+            
             import mlfsl.* mlfourd.* mlpublish.*;
             
             diary(FnirtBuilder.diary_fn);
@@ -407,10 +437,10 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             fprintf('\n\n');
             diary off;
         end % static tagROIs
-        function [rightStr,leftStr]                   = prepCftool(tagStruct)
-            
+        function [rightStr,leftStr] = prepCftool(tagStruct)
             %% PREPCFTOOL
             %  Usage:  [rightStruct,leftStruct] = FnirtBuilder.prepCftool(struct_from_tagROIs)
+            
             import mlfourd.* mlfsl.*;
             
             diary(FnirtBuilder.diary_fn);
@@ -437,7 +467,6 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             diary off; 
         end % static prepCftool
         function [estats, axis, vecs, erois, datBrow] = sampleVoxels(edata_fp, blur, bldr)
-            
             %% SAMPLEVOXELS returns statistics, vector of samples, ROIs for sampling, NiiBrowser for data
             %  Usage:   [stats, axes, vecs, ROIs, dataBrowser] = ...
             %           FnirtBuilder.sampleVoxels(data_fp [, blur, mni, right]);
@@ -446,6 +475,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             %                         ^ cell or doubles
             %                               ^ cell of NIfTI
             %                                   ^ NiiBrowser for data
+            
             import mlfsl.* mlfourd.*; 
             fnb       = FnirtBuilder(bldr); 
             pimaging = PETStudy(pwd);
@@ -509,37 +539,10 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
                 
             end
         end % static sampleVoxels
-    end % static methdos
-    
-    methods %% set/get
-        function pth  = get.transformationsPath(this)
-            pth = fullfile(this.fslPath, this.fslRegistry.transformationsFolder, '');
-        end   
-        function cfg  = get.fnirtCfg(this) %#ok<MANU>
-            cfg = '';
-        end
-        function sfx  = get.warpcoefSuffix(this) %#ok<MANU>
-            sfx = '_warpcoef';
-        end
-        function sfx  = get.invwarpSuffix(this) %#ok<MANU>
-            sfx = '_invwarpcoef';
-        end
-        function sfx  = get.warpedSuffix(this) %#ok<MANU>
-            sfx = '_warped';
-        end
-        function sfx  = get.petFilterSuffix(this) %#ok<MANU>
-            sfx = '';
-        end
-        function lbl  = get.segmentationLabel(this) %#ok<MANU>
-            lbl = 'rois_seg';
-        end 
-        function lbl  = get.regionLabel(this) %#ok<MANU>
-            lbl = '_region';
-        end
-    end
+    end % static methods
     
 	methods
-        function [this,nlxfm]      = morphSingle(this, varargin) 
+        function [this,nlxfm]      = morphSingle(this, varargin)
             try 
                opts = mlfsl.FnirtOptions;
                switch (length(varargin))
@@ -582,10 +585,10 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
                    case 1
                        opts = varargin{1};
                        
-                        if (isa(varargin{1}, 'mlfsl.FnirtOptions'))
-                            opts = varargin{1}; 
-                        else
-                        end
+                       if (isa(varargin{1}, 'mlfsl.FnirtOptions'))
+                           opts = varargin{1};
+                       else
+                       end
                    case 2
                        opts = mlfsl.FnirtOptions;
                    otherwise
@@ -606,21 +609,21 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             
             
             try 
-               opts = mlfsl.FnirtOptions;
-               switch (length(varargin))
-                   case 1
+                opts = mlfsl.FnirtOptions;
+                switch (length(varargin))
+                    case 1
                         if (isa(varargin{1}, 'mlfsl.FnirtOptions'))
-                            opts = varargin{1}; 
+                            opts = varargin{1};
                         else
                         end
-                   otherwise
-               end
+                    otherwise
+                end
             catch ME
                 handexcept(ME);
             end
         end            
-        function                     convertMorph(~, varargin)  %#ok<VANUS>
-            error('mlfsl:NotImplemented', 'convertMorph is a stub for FSL app convertwarp');            
+        function                     convertMorph(~, varargin)
+            warning('mlfsl:NotImplemented', 'convertMorph is a stub for FSL app convertwarp');            
             
             try 
                opts = mlfsl.FnirtOptions;
@@ -641,7 +644,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
     %% PROTECTED
     
     methods (Access = 'protected')
-        function this           =  FnirtBuilder(varargin) 
+        function this           = FnirtBuilder(varargin)
             %% FNIRTBUILDER
             %  http://www.fmrib.ox.ac.uk/fsl/fnirt/warp_utils.html
             
@@ -667,9 +670,9 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             [this,nlxfm] = this.convertWarpLeaf( ...
                            this.convertWarpChecks(opts));
         end
-        function opts           = warpChecks(this, opts)
+        function opts           = warpChecks(~, opts)
         end
-        function opts           = convertWarpChecks(this, opts)
+        function opts           = convertWarpChecks(~, opts)
         end
         function nm             = fqaffinename(this, objs)
             nm = affcast(objs{:});
@@ -686,19 +689,19 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
     %% PRIVATE
     
     methods (Access = 'private')  
-        function fn   = warped(this, label, varargin)
+        function fn = warped(this, label, varargin)
             [~,label] = fileparts(label);
             [~,label] = fileparts(label);
             fn = mlfourd.ImagingParser.formFilename([label this.warpedSuffix], varargin{:});
             fn = this.fqfilename(fn);
         end        
-        function fn   = warpcoef(this, label, varargin)
+        function fn = warpcoef(this, label, varargin)
             [~,label] = fileparts(label);
             [~,label] = fileparts(label);
             fn = mlfourd.ImagingParser.formFilename([label this.warpcoefSuffix], varargin{:});
             fn = this.fqfilename(fn);
         end        
-        function fn   = invwarpcoef(this, label, varargin)
+        function fn = invwarpcoef(this, label, varargin)
             [~,label] = fileparts(label);
             [~,label] = fileparts(label);
             pos_underscore = strfind(label, this.warpcoefSuffix);
@@ -706,20 +709,22 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
             fn = mlfourd.ImagingParser.formFilename([label this.invwarpSuffix], varargin{:});
             fn = this.fqfilename(fn);
         end    
-        function fn    = csf(this, varargin)
+        function fn = csf(this, varargin)
             fn = mlfourd.ImagingParser.formFilename([this.segmentationLabel '_csf'], varargin{:});
         end        
-        function fn    = nocsf(this, varargin)
+        function fn = nocsf(this, varargin)
             fn = mlfourd.ImagingParser.formFilename([this.segmentationLabel '_nocsf'], varargin{:});
         end        
-        function fn    = right(~, varargin)
+        function fn = right(~, varargin)
             fn = mlfourd.ImagingParser.formFilename('right-MNI152-2mm', varargin{:});
-        end      
-        % KLUDGE:   ho_to_t1, t1_to_ho
-        function fn   = ho_to_t1(this)
+        end   
+        
+        %% KLUDGE:   ho_to_t1, t1_to_ho
+        
+        function fn = ho_to_t1(this)
             fn = this.xfmName(  [this.h15o this.petFilterSuffix], this.t1);
         end
-        function fn   = t1_to_ho(this)
+        function fn = t1_to_ho(this)
             fn = this.xfmName(   this.t1, [this.h15o this.petFilterSuffix]);
         end
     end

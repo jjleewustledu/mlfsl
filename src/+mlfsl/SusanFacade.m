@@ -40,7 +40,7 @@ classdef SusanFacade
                     handexcept(ME, ['SusanFacade.doSusan failed to load ' nii]);
                 end
             end
-            assert(isa(nii, 'mlfourd.NIfTIInterface'));
+            assert(isa(nii, 'mlfourd.INIfTI'));
             this.nii = nii;
         end      
  	end 

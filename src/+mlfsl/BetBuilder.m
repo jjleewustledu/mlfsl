@@ -63,14 +63,14 @@ classdef BetBuilder < mlfsl.FslBuilder
             %% bettedFilename adds bet prefix/suffix
             %  Usage:   names = BetBuilder.bettedFilename(obj0 [, 'fn', 'fq', full_path, ...])
             %           ^ char, cell-array of
-            %                                         ^ fileprefix, filename, NIfTIInterface, cell-arrays of
+            %                                         ^ fileprefix, filename, INIfTI, cell-arrays of
             %                                                  ^ forwarded to ImagingChooser.createFilename
             %  cf. mlchoosers.ImagingChoosers.createFilename
 
             import mlfsl.* mlfourd.*;
             name = imcast(name, 'fqfilename');
             if (~BetBuilder.isbetted(name))
-                [pth,fp,ext] = filepartsx(name, NIfTIInterface.FILETYPE_EXT);
+                [pth,fp,ext] = filepartsx(name, INIfTI.FILETYPE_EXT);
                  name = ImagingParser.formFilename( ...
                                    fullfile(pth, [BetBuilder.betTokens.prefix fp BetBuilder.betTokens.suffix ext]), ...
                                    varargin{:}, 'fqfn');
@@ -161,7 +161,7 @@ classdef BetBuilder < mlfsl.FslBuilder
             this.bettedPath = ensureFolderExists(this.bettedPath);
             tokens = mlfsl.BetBuilder.betTokens;
             for b = 1:length(tokens)
-                movefiles([tokens(b).prefix '*' tokens(b).suffix '*' mlfourd.NIfTIInterface.FILETYPE_EXT], ...
+                movefiles([tokens(b).prefix '*' tokens(b).suffix '*' mlfourd.INIfTI.FILETYPE_EXT], ...
                            this.bettedPath);
             end
         end % moveBetted         

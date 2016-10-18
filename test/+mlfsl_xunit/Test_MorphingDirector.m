@@ -35,7 +35,7 @@ classdef Test_MorphingDirector < mlfsl_xunit.Test_MyAlignmentDirector
 %             [this.betDirector, bettedVararginN] = this.betDirector.bet(argin{N});
 %             [this.morphDirector, xfm1onN]       = this.morphDirector.coregister(argin{1},             bettedVararginN);
 %             [this.morphDirector, xfmNonStd]     = this.morphDirector.coregister(bettedVararginN, this.bettedStandard);
-%             [this.alignmentBuilder,nlxfm]       = this.alignmentBuilder.morph2standardImage(argin{N}, xfmNonStd);
+%             [this.builder,nlxfm]                = this.builder.morph2standardImage(argin{N}, xfmNonStd);
 %             [~, morphedobj]                     = this.applyMorph(                          argin{1}, this.standardImage, nlxfm, xfm1onN);
         end
  		function test_morphSingle2bettedStandard(this) 
@@ -59,7 +59,7 @@ classdef Test_MorphingDirector < mlfsl_xunit.Test_MyAlignmentDirector
                         fullfile(getenv('MLUNIT_TEST_PATH'), 'np755/mm01-020_p7377_2009feb5/fsl/bt1_default_restore_on_brainmask_2mm_warped.nii.gz'));
         end
         function test_morph2fsaverage1mm(this)
-            [~,director] = this.director_on_fsaver.morph2fsaverage1mm(this.t1Cntxt, this.t1MaskCntxt);
+            [~,director] = this.director_on_fsaver.morph2fsaverage1mm(this.t1Cntxt, this.t1maskCntxt);
         end
         function test_inverseMorph(this)
 %             if (~lexist())

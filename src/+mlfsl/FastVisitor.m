@@ -28,7 +28,7 @@ classdef FastVisitor < mlfsl.FslVisitor
             assert(isa(opts, 'mlfsl.FastOptions'));
             if (iscell(infiles))
                 infiles = this.cell2strf(infiles); end
-            [~,log] = mlfsl.FslVisitor.fslcmd('fast', opts, infiles);
+            [~,log] = mlfsl.FslVisitor.cmd('fast', opts, infiles);
                       this.logger.add(log);  
         end
         function str = cell2strf(~, cll)

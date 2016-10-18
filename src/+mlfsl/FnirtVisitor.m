@@ -21,20 +21,22 @@ classdef FnirtVisitor < mlfsl.FslVisitor
 	methods 		 
 
  		function [bldr,nlxfm]    = visitAlignmentBuilder(this, bldr) 
+            import mlpipeline.*;
             opts            = mlfsl.FnirtOptions;
             opts.in         = bldr.product.fqfileprefix;
             opts.ref        = bldr.referenceImage.fqfileprefix;
             assert(lexist(bldr.xfm, 'file'));
             opts.aff        = bldr.xfm;
             opts.cout       = this.thisOnThatImageFilename(opts.in, [opts.ref this.WARPCOEF_SUFFIX]);
-            if (lexist(bldr.inweight, 'file'))
-                opts.inmask = bldr.inweight; end
+            if (lexist(bldr.sourceWeight, 'file'))
+                opts.inmask = bldr.sourceWeight; end
             if (lexist(bldr.refweight, 'file'))
                 opts.refmask = bldr.refweight; end
             [~,nlxfm]        = this.fnirt(opts);
             bldr.warp        = nlxfm;
         end 
         function [bldr,warpFqfn] = visitAlignmentBuilder2applywarp(this, bldr)
+            import mlpipeline.*;
             opts            = mlfsl.ApplywarpOptions;
             opts.in         = bldr.product.fqfileprefix;
             opts.ref        = bldr.referenceImage.fqfileprefix;
@@ -49,6 +51,7 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             [~,bldr.product] = this.applywarp(opts);
         end
         function bldr            = visitAlignmentBuilder2invwarp(this, bldr)
+            import mlpipeline.*;
             opts      = mlfsl.InversewarpOptions;
             opts.ref  = bldr.product.fqfileprefix;
             opts.warp = this.thisOnThatImageFilename(opts.ref, [bldr.bettedStandard.fqfileprefix this.WARPCOEF_SUFFIX]);
@@ -56,6 +59,7 @@ classdef FnirtVisitor < mlfsl.FslVisitor
             [~,bldr.product] = this.invwarp(opts);
         end
         function rbldr           = visitRoisBuilder2applywarp(this, rbldr)
+            import mlpipeline.*;
             opts            = mlfsl.ApplywarpOptions;
             opts.in         = rbldr.product.fqfileprefix;
             opts.ref        = rbldr.bt1default.fqfileprefix;
@@ -68,9 +72,6 @@ classdef FnirtVisitor < mlfsl.FslVisitor
         end
         
  		function this = FnirtVisitor(varargin) 
- 			%% FNIRTVISITOR 
- 			%  Usage:  this = FnirtVisitor() 
-
  			this = this@mlfsl.FslVisitor(varargin{:}); 
  		end 
     end 
@@ -80,23 +81,24 @@ classdef FnirtVisitor < mlfsl.FslVisitor
     methods (Access = 'protected')
         function [this,nlxfm] = fnirt(this, opts)
             assert(isa(opts, 'mlfsl.FnirtOptions'));
-            [~,log] = mlfsl.FslVisitor.fslcmd('fnirt', opts);
-                      this.logger.add(log);  
-              nlxfm = opts.cout;
+            [~,~,log] = this.cmd('fnirt', opts);
+                        this.logger.add(log);  
+             nlxfm    = opts.cout;
         end
         function [this,im ]   = applywarp(this, opts)
             assert(isa(opts, 'mlfsl.ApplywarpOptions'));
-            [~,log]     = mlfsl.FslVisitor.fslcmd('applywarp', opts); 
-                          this.logger.add(log);
-            im          = opts.out;
+            [~,~,log] = this.cmd('applywarp', opts); 
+                        this.logger.add(log);
+            im        = opts.out;
         end
         function [this,im]    = invwarp(this, opts)            
             assert(isa(opts, 'mlfsl.InversewarpOptions'));
-            [~,log]     = mlfsl.FslVisitor.fslcmd('invwarp', opts); 
-                          this.logger.add(log);
-            im          = opts.out;
+            [~,~,log] = this.cmd('invwarp', opts); 
+                        this.logger.add(log);
+            im        = opts.out;
         end
-        function [this,im]    = convertwarp(this, ~) %#ok<MCUOA>
+        function [this,im]    = convertwarp(this, opts) 
+            im = opts.out;
         end
     end
 

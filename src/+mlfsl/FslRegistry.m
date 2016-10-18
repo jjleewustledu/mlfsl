@@ -25,12 +25,10 @@ classdef FslRegistry < mlpatterns.Singleton
     end
     
     properties
-        baseBlur           = mlpet.O15Builder.petFwhh;
-        confidenceInterval = 95;
-
         alwaysBackup           = {'*mcf.mat' '*.par' '*sigma*' '*variance*' '*mean_reg*' '*skull*' '*skin*' '*.vtk'};
         atlasLibrary           =  'HarvardOxford';  
         betFolder              =  'bet'; 
+        confidenceInterval     = 95;
         fslFolder              =  'fsl';
         mniIndex               =   1;
         preferredDatatype      =  'FLOAT'; 
@@ -38,8 +36,9 @@ classdef FslRegistry < mlpatterns.Singleton
         transformationsFolder  =  'matrices';           
     end
     
-    properties (Dependent)
+    properties (Dependent)        
         atlasPath
+        baseBlur
         fsldir
         standardPath
     end
@@ -70,6 +69,9 @@ classdef FslRegistry < mlpatterns.Singleton
     methods %% set/get
         function p   = get.atlasPath(this)
             p = fullfile(this.fsldir, 'data','atlases', this.atlasLibrary, '');
+        end
+        function bb  = get.baseBlur(~)
+            bb = norm(mlpet.PETRegistry.instance.petPointSpread);
         end
         function fld = get.betFolder(this)
             fld = ensureFolderExists(this.betFolder);
@@ -112,7 +114,4 @@ classdef FslRegistry < mlpatterns.Singleton
         end % private ctor
     end % protected methods 
     
-    properties (Access='private')
-        namingRegistry
-    end
 end % classdef FslRegistry

@@ -415,7 +415,7 @@ classdef ICHemorrhage
         end
                 
         function m = get.mttImpaired(this)
-            if (isempty(this.mttImpaired_internal) || ~isa(this.mttImpaired_internal, 'mlfourd.NIfTIInterface'))
+            if (isempty(this.mttImpaired_internal) || ~isa(this.mttImpaired_internal, 'mlfourd.INIfTI'))
                 this.mttImpaired_internal = mlfourd.NIfTI_mask( ...
                                             this.make_relative(this.mtt) > this.mttDelayThreshold, 'binary', eps);
                 this.mttImpaired_internal = this.mttImpaired_internal & this.parenchyma;
@@ -464,7 +464,7 @@ classdef ICHemorrhage
         end
         
         function msk = get.adcBounded(this)
-            if (isempty(this.adcBounded_internal) || ~isa(this.adcBounded_internal, 'mlfourd.NIfTIInterface'))
+            if (isempty(this.adcBounded_internal) || ~isa(this.adcBounded_internal, 'mlfourd.INIfTI'))
                 try 
                     tmp = mlfourd.NIfTI.load(this.adc_fp);
                     this.adcBounded_internal = mlfourd.NIfTI_mask(tmp > this.adcThreshold);
@@ -533,7 +533,7 @@ classdef ICHemorrhage
            
         function h = get.hemorrhage(this)
                 this.hemorrhage_internal = mlfourd.NIfTI(this.hemorrhage_internal);
-                this.hemorrhage_internal = this.hemorrhage_internal.forceDouble;
+                this.hemorrhage_internal = double(this.hemorrhage_internal);
                 this.hemorrhage_internal = this.hemorrhage_internal ./ this.hemorrhage_internal.dipmax;
                 this.hemorrhage_internal = mlfourd.NIfTI_mask(this.hemorrhage_internal, 'binary', 0.98);
             h = this.hemorrhage_internal & this.parenchyma;
@@ -578,7 +578,7 @@ classdef ICHemorrhage
         %% OTHER CALCULATION METHODS
         
         function rs = rescalingfind(~, str) 
-            if (isa(str, 'mlfourd.NIfTIInterface'))
+            if (isa(str, 'mlfourd.INIfTI'))
                 str = str.fileprefix; 
             end
             assert(ischar(str));
