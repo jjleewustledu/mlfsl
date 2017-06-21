@@ -4,7 +4,7 @@ classdef (Abstract) AlignmentBuilder
     %  See also:  mlpatterns.Builder for pattern ideas;
     %             AlignmentBuilderPrototype, mlpet.AlignmentBuilderPrototype, 
     %             PETAlignmentBuilder, MRAlignmentBuilder, MorphingBuilder, 
-    %             RoisBuilder, PETSegstatsBuilder for legacy builders;
+    %             mlderdeyn.RoisBuilder, PETSegstatsBuilder for legacy builders;
     %             IAlignmentDirector, AlignmentDirector, AlignmentDirectorDecorator, 
     %             PETAlignmentDirector, MRAlignmentDirector, MorphingDirector for legacty directors;
     %             FlirtVisitor, FslVisitor, PipelineVisitor, mlunpacking.UnpackingVisitor 
