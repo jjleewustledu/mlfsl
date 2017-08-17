@@ -152,7 +152,9 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             this = this.buildVisitor.transformTrilinear(this);
         end
         
-        function this = buildFlirted(this) %% DEPRECATED
+        function this = buildFlirted(this)
+            %  @deprecated
+            
             this = this.buildVisitor.alignMultispectral(this);
         end 
         function this = buildMeanVolume(this)
@@ -227,9 +229,9 @@ classdef AlignmentBuilderPrototype < mlfsl.AlignmentBuilder
             addParameter(p, 'sourceImage',    [], @(x) isa(x, 'mlfourd.ImagingContext'));
             addParameter(p, 'referenceImage', [], @(x) isa(x, 'mlfourd.ImagingContext'));
             addParameter(p, 'xfm',            [], @(x) lexist(x, 'file') || lexist([x FlirtVisitor.XFM_SUFFIX], 'file'));
-            addParameter(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext')); % DEPRECATED
-            addParameter(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext')); % DEPRECATED
-            addParameter(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext')); % DEPRECATED
+            addParameter(p, 'image',          [], @(x) isa(x, 'mlfourd.ImagingContext')); %  @deprecated
+            addParameter(p, 'reference',      [], @(x) isa(x, 'mlfourd.ImagingContext')); %  @deprecated
+            addParameter(p, 'product',        [], @(x) isa(x, 'mlfourd.ImagingContext')); %  @deprecated
             parse(p, varargin{:});
             
             this.sessionPath_    = p.Results.sessionPath;

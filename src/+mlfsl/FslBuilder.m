@@ -1,5 +1,6 @@
 classdef FslBuilder < mlfourd.ImageBuilder
-    %% FSLBUILDER is DEPRECATED; prefer mlfsl.FslVisitor
+    %% FSLBUILDER 
+    %  @deprecated prefer mlfsl.FslVisitor
     %
 	%  Version $Revision: 2610 $ was created $Date: 2013-09-07 19:15:00 -0500 (Sat, 07 Sep 2013) $ by $Author: jjlee $,  
  	%  last modified $LastChangedDate: 2013-09-07 19:15:00 -0500 (Sat, 07 Sep 2013) $ and checked into svn repository $URL: file:///Users/jjlee/Library/SVNRepository_2012sep1/mpackages/mlfsl/src/+mlfsl/trunk/FslBuilder.m $ 
