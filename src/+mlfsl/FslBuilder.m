@@ -225,7 +225,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
         end
         function fqfn  = fqfilename(this, imobj)
             fqfn = imcast(imobj, 'fqfilename');
-            ensureFolderExists(this.fslPath);
+            ensuredir(this.fslPath);
             if (~lstrfind(fqfn, this.fslPath))
                 fqfn = fullfile(this.fslPath, fqfn); end
         end

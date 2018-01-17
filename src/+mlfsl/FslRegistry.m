@@ -74,7 +74,7 @@ classdef FslRegistry < mlpatterns.Singleton
             bb = norm(mlpet.PETRegistry.instance.petPointSpread);
         end
         function fld = get.betFolder(this)
-            fld = ensureFolderExists(this.betFolder);
+            fld = ensuredir(this.betFolder);
         end
         function d   = get.fsldir(this) %#ok<MANU>
             d = getenv('FSLDIR');
@@ -84,13 +84,13 @@ classdef FslRegistry < mlpatterns.Singleton
             this.preferredDatatype = dt;
         end  
         function fld = get.roiFolder(this)
-            fld = ensureFolderExists(this.roiFolder);
+            fld = ensuredir(this.roiFolder);
         end     
         function p   = get.standardPath(this)
             p = fullfile(this.fsldir, 'data','standard', '');
         end
         function fld = get.transformationsFolder(this)
-            fld = ensureFolderExists(this.transformationsFolder);
+            fld = ensuredir(this.transformationsFolder);
         end
     end    
     

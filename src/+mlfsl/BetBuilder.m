@@ -158,7 +158,7 @@ classdef BetBuilder < mlfsl.FslBuilder
             [~,imobj] = this.applyBetMask(bt1mask, imobj);
         end % betUsingReference 
         function this = moveBetted(this)
-            this.bettedPath = ensureFolderExists(this.bettedPath);
+            this.bettedPath = ensuredir(this.bettedPath);
             tokens = mlfsl.BetBuilder.betTokens;
             for b = 1:length(tokens)
                 movefiles([tokens(b).prefix '*' tokens(b).suffix '*' mlfourd.INIfTI.FILETYPE_EXT], ...
