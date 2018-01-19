@@ -10,6 +10,17 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
  	%  $Id: FslVisitor.m 2629 2013-09-16 06:19:00Z jjlee $ 
     
 	methods (Static)
+        function fn      = fslchfiletype(fn, varargin)
+            ip = inputParser;
+            addRequired(ip, 'fn', @(x) lexist(x, 'file'));
+            addOptional(ip, 'type', 'NIFTI_GZ', @ischar);
+            parse(ip, fn, varargin{:});
+            
+            fprintf('mlfsl.FslVisitor.fslchfiletype is working on %s\n', ip.Results.fn);
+            mlpipeline.PipelineVisitor.cmd('fslchfiletype', 'NIFTI_GZ', ip.Results.fn);
+            [p,f] = myfileparts(fn);
+            fn = fullfile(p, [f mlfourd.INIfTI.FILETYPE_EXT]);
+        end
         function dat     = fslhdParameter(fprefix, pname)
             %% FSLHDPARAMETER accepts NIfTI fileprefixes/names; it returns the stringified value of the first match 
             %  of an FSL-header parameter.
