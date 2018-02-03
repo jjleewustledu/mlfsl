@@ -38,7 +38,7 @@ classdef Test_MRImagingBuilder < TestCase
  		function this = Test_MRImagingBuilder(varargin) 
             
  			this = this@TestCase(varargin{:});
-            this.dicomPath = fullfile(getenv('HOME'), 'Local/src/mlcvl/mlfourd/test/data/CDR_OFFLINE', '');
+            this.dicomPath = fullfile(getenv('HOME'), 'MATLAB-Drive/mlfourd/test/data/CDR_OFFLINE', '');
             %this.anMRImagingSession =  mlfsl.MRImagingSession.sessionFromPath(this.dicomPath);
             %this.anMRImagingSeries  = this.anMRImagingSession.structInfo(2);
  		end % Test_MRImagingBuilder (ctor) 
