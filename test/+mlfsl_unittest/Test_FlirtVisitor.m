@@ -50,7 +50,7 @@ classdef Test_FlirtVisitor < matlab.unittest.TestCase
     end
     
 	properties
-        srcroot = '/Users/jjlee/Local/src';
+        srcroot = fullfile(getenv('HOME'), 'Local/src');
         flirtb
     end
 

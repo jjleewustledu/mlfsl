@@ -39,7 +39,7 @@ classdef Test_FlirtBuilder < mlfsl_xunit.Test_mlfsl
     end
     
 	properties
-        srcroot = '/Users/jjlee/Local/src';
+        srcroot = fullfile(getenv('HOME'), 'Local/src');
         flirtb
     end
 

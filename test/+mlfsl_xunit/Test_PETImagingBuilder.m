@@ -10,7 +10,7 @@ classdef Test_PETImagingBuilder < TestCase
  	%  N.B. classdef (Sealed, Hidden, InferiorClasses = {?class1,?class2}, ConstructOnLoad) 
 
 	properties
-        srcroot        = '/Users/jjlee/MATLAB-Drive';
+        srcroot        = fullfile(getenv('HOME'), 'MATLAB-Drive', '');
         aPETImagingBuilder  = 0;
         butCorr        = true;
         cbfnii         = 0;
