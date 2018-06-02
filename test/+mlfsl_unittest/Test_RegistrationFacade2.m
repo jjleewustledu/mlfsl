@@ -149,7 +149,7 @@ classdef Test_RegistrationFacade2 < matlab.unittest.TestCase
         function test_registerTalairachOnPet(this)
             studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
             sessd = mlraichle.SessionData( ...
-                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'tag', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);            
             product = rf.registerTalairachOnPet2;
@@ -165,7 +165,7 @@ classdef Test_RegistrationFacade2 < matlab.unittest.TestCase
         function test_masksTalairachOnProduct(this)
             studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
             sessd = mlraichle.SessionData( ...
-                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'tag', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);
             msk = mlfourd.ImagingContext(fullfile(rf.sessionData.sessionPath, 'V1', 'wmparc.mgz'));  
@@ -183,7 +183,7 @@ classdef Test_RegistrationFacade2 < matlab.unittest.TestCase
         function test_repairTalairachOnPetFrame(this)
             studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
             sessd = mlraichle.SessionData( ...
-                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'tag', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb); 
             product.fdg = mlfourd.PETImagingContext(fullfile(this.sessionPath, 'NP995_09fdg_v1_flip2_crop_mcf.nii.gz'));
@@ -196,7 +196,7 @@ classdef Test_RegistrationFacade2 < matlab.unittest.TestCase
         function test_repairMaskInSitu(this)            
             studyd = mlpipeline.StudyDataSingletons.instance('test_raichle');
             sessd = mlraichle.SessionData( ...
-                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'suffix', '_v1');            
+                'studyData', studyd, 'sessionPath', fullfile(studyd.subjectsDir, 'NP995_09', ''), 'vnumber', 1, 'tag', '_v1');            
             rb = mlfsl.MultispectralRegistrationBuilder('sessionData', sessd);
             rf = mlraichle.RegistrationFacade(          'sessionData', sessd, 'registrationBuilder', rb);            
             product.fdg = mlpet.PETImagingContext(fullfile(this.sessionPath, 'NP995_09fdg_v1_flip2_crop_mcf.nii.gz'));
