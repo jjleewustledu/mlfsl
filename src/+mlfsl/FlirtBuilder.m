@@ -284,7 +284,7 @@ classdef FlirtBuilder < mlfsl.FslBuilder
             end
         end % concatTransforms  
         function pth         = inBet(this, fp)
-            [~,fp,e] = filepartsx(fp, mlfourd.INIfTI.FILETYPE_EXT);
+            [~,fp,e] = filepartsx(fp, mlfourd.NIfTId.FILETYPE_EXT);
             pth = fullfile(this.bettedPath, [fp e]);
         end         
         

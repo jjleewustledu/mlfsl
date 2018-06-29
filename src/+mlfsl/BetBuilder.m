@@ -70,7 +70,7 @@ classdef BetBuilder < mlfsl.FslBuilder
             import mlfsl.* mlfourd.*;
             name = imcast(name, 'fqfilename');
             if (~BetBuilder.isbetted(name))
-                [pth,fp,ext] = filepartsx(name, INIfTI.FILETYPE_EXT);
+                [pth,fp,ext] = filepartsx(name, NIfTId.FILETYPE_EXT);
                  name = ImagingParser.formFilename( ...
                                    fullfile(pth, [BetBuilder.betTokens.prefix fp BetBuilder.betTokens.suffix ext]), ...
                                    varargin{:}, 'fqfn');
@@ -161,7 +161,7 @@ classdef BetBuilder < mlfsl.FslBuilder
             this.bettedPath = ensuredir(this.bettedPath);
             tokens = mlfsl.BetBuilder.betTokens;
             for b = 1:length(tokens)
-                movefiles([tokens(b).prefix '*' tokens(b).suffix '*' mlfourd.INIfTI.FILETYPE_EXT], ...
+                movefiles([tokens(b).prefix '*' tokens(b).suffix '*' mlfourd.NIfTId.FILETYPE_EXT], ...
                            this.bettedPath);
             end
         end % moveBetted         

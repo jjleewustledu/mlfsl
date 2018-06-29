@@ -167,7 +167,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
         end
         function imgfn = xfm2imgfn(xfm)
             assert(ischar(xfm));
-            imgfn = [fileprefix(xfm, mlfsl.FlirtVisitor.XFM_SUFFIX) mlfourd.INIfTI.FILETYPE_EXT];
+            imgfn = [fileprefix(xfm, mlfsl.FlirtVisitor.XFM_SUFFIX) mlfourd.NIfTId.FILETYPE_EXT];
         end
     end
         
@@ -212,7 +212,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
     
     methods
         function pth   = inFsl(this, fp)
-            [~,fp,e] = filepartsx(fp, mlfourd.INIfTI.FILETYPE_EXT);
+            [~,fp,e] = filepartsx(fp, mlfourd.NIfTId.FILETYPE_EXT);
             pth = fullfile(this.fslPath, [fp e]);
         end
         function         visualCheck(this, objs)

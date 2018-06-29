@@ -56,7 +56,7 @@ classdef FastRois < mlsurfer.AbstractRois
     methods (Access = 'private')
         function fn = sessionPriorFileprefix(channel)
             assert(ischar(channel));
-            fn = [channel mlfourd.INIfTI.FILETYPE_EXT];
+            fn = [channel mlfourd.NIfTId.FILETYPE_EXT];
         end
     end
 

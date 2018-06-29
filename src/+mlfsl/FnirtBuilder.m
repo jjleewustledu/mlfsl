@@ -374,7 +374,7 @@ classdef FnirtBuilder  < mlfsl.FlirtBuilder
         function fp      = fpOnStd(fp)
             %% FPONSTD fileprefix on standard atlas
             
-            [~,fp,~] =  filepartsx(fp, mlfourd.INIfTI.FILETYPE_EXT);
+            [~,fp,~] =  filepartsx(fp, mlfourd.NIfTId.FILETYPE_EXT);
                imaging   = ImagingComponent;
                fp    = [fileprefix(fp) '_on_' imaging.mniStandard('brain','fp')];
         end % static fpOnStd

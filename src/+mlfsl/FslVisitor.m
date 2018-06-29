@@ -19,7 +19,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             fprintf('mlfsl.FslVisitor.fslchfiletype is working on %s\n', ip.Results.fn);
             mlpipeline.PipelineVisitor.cmd('fslchfiletype', 'NIFTI_GZ', ip.Results.fn);
             [p,f] = myfileparts(fn);
-            fn = fullfile(p, [f mlfourd.INIfTI.FILETYPE_EXT]);
+            fn = fullfile(p, [f mlfourd.NIfTId.FILETYPE_EXT]);
         end
         function dat     = fslhdParameter(fprefix, pname)
             %% FSLHDPARAMETER accepts NIfTI fileprefixes/names; it returns the stringified value of the first match 

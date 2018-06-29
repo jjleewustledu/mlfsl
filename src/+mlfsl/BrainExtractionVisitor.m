@@ -58,7 +58,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
 
             name = filename( ...
                    mlfsl.BrainExtractionVisitor.bettedFileprefix(name), ...
-                   mlfourd.INIfTI.FILETYPE_EXT);
+                   mlfourd.NIfTId.FILETYPE_EXT);
         end % static bettedFilename  
         function pfix  = bettedFileprefix(pfix)
             %% BETTEDFILEPREFIX adds bet prefix/suffix
@@ -91,7 +91,7 @@ classdef BrainExtractionVisitor < mlfsl.FslVisitor
             
             name = filename( ...
                    mlfsl.BrainExtractionVisitor.unbettedFileprefix(name), ...
-                   mlfourd.INIfTI.FILETYPE_EXT);
+                   mlfourd.NIfTId.FILETYPE_EXT);
         end % static unbettedFilename
         function pfix  = unbettedFileprefix(pfix)
             %% UNBETTEDFILENAME strips bet prefix/suffix preserving path if present
