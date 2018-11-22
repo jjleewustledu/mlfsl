@@ -124,7 +124,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             opts.refweight    = bldr.referenceWeight; 
             bldr.product      = this.transform__(opts);
             bldr.product.addLog( ...
-                ['FlirtVisitor.registerInjective.bldr.sourceImage\n' bldr.sourceImage.getLog.contents]);
+                ['FlirtVisitor.registerInjective.bldr.sourceImage\n' bldr.sourceImage.logger.contents]);
             bldr.xfm          = opts.init;
             xfm               = opts.init;
         end
@@ -149,7 +149,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             opts.refweight    = bldr.referenceWeight; 
             bldr.product      = this.transform__(opts);
             bldr.product.addLog( ...
-                ['FlirtVisitor.registerSurjective.bldr.sourceImage\n' bldr.sourceImage.getLog.contents]);
+                ['FlirtVisitor.registerSurjective.bldr.sourceImage\n' bldr.sourceImage.logger.contents]);
             bldr.xfm          = opts.init;
             xfm               = opts.init;
         end
@@ -172,7 +172,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             opts.transformation = bldr.xfm;
             bldr.product        = this.applyxfm4D__(opts);
             bldr.product.addLog('mlfsl.FlirtVisitor.transform4D');
-            bldr.product.addLog(bldr.sourceImage.getLog.contents);
+            bldr.product.addLog(bldr.sourceImage.logger.contents);
             
             if (strcmp(bldr.interp, 'nearestneighbor'))
                 p = bldr.product.numericalNiftid;

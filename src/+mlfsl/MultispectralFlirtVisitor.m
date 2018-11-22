@@ -45,7 +45,7 @@ classdef MultispectralFlirtVisitor < mlfsl.FlirtVisitor
             opts.refweight    = bldr.referenceWeight; 
             bldr.product      = this.transform__(opts);
             bldr.product.addLog( ...
-                ['FlirtVisitor.registerInjective.bldr.sourceImage\n' bldr.sourceImage.getLog.contents]);
+                ['FlirtVisitor.registerInjective.bldr.sourceImage\n' bldr.sourceImage.logger.contents]);
             bldr.xfm          = opts.init;
             xfm               = opts.init;
         end
@@ -70,7 +70,7 @@ classdef MultispectralFlirtVisitor < mlfsl.FlirtVisitor
             opts.refweight    = bldr.referenceWeight; 
             bldr.product      = this.transform__(opts);
             bldr.product.addLog( ...
-                ['FlirtVisitor.registerSurjective.bldr.sourceImage\n' bldr.sourceImage.getLog.contents]);
+                ['FlirtVisitor.registerSurjective.bldr.sourceImage\n' bldr.sourceImage.logger.contents]);
             bldr.xfm          = opts.init;
             xfm               = opts.init;
         end  
