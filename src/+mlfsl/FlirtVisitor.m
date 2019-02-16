@@ -300,7 +300,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             opts = this.ensureFieldsAreFilenames(opts);
             [~,c] = mlbash(sprintf('applyxfm4D %s %s %s %s -fourdigit', ...
                 opts.input, opts.ref, opts.output, opts.transformation));
-            prod = mlfourd.ImagingContext.load(opts.output);
+            prod = mlfourd.ImagingContext2(opts.output);
             lg = this.getLog(opts.input);
             prod.addLog(['From FlirtVisitor.applyxfm4D__.opts.input:\n' lg.contents]);
             prod.addLog(c);            
@@ -346,21 +346,21 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             xfm = opts.omat;
         end
         function fqdn = mat_fqdn(this, ic)
-            assert(isa(ic, 'mlfourd.ImagingContext'));
+            assert(isa(ic, 'mlfourd.ImagingContext2'));
             fqdn = [ic.fqfileprefix this.XFM_SUFFIX]; 
         end
         function fqfn = mcf_fqfn(this, ic)
-            assert(isa(ic, 'mlfourd.ImagingContext'));
+            assert(isa(ic, 'mlfourd.ImagingContext2'));
             fqfn = [ic.fqfileprefix this.MCF_SUFFIX ic.filesuffix];
         end
         function fqdn = mcf_mat_fqdn(this, ic)
-            assert(isa(ic, 'mlfourd.ImagingContext'));            
+            assert(isa(ic, 'mlfourd.ImagingContext2'));            
             fqdn = [ic.fqfileprefix this.MCF_SUFFIX this.XFM_SUFFIX]; 
         end
         function prod = mcflirt__(this, opts)
             assert(isa(opts, 'mlfsl.McflirtOptions'));
             [~,~,c] = this.cmd('mcflirt', opts);
-            prod = mlfourd.ImagingContext.load([opts.in this.MCF_SUFFIX this.filetypeExt]);
+            prod = mlfourd.ImagingContext2([opts.in this.MCF_SUFFIX this.filetypeExt]);
             lg = this.getLog(opts.in);
             prod.addLog(['From FlirtVisitor.mclfirt__.opts.in\n' lg.contents]);
             prod.addLog(c);
@@ -370,7 +370,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             opts.applyxfm = true;
             opts.omat = [];
             [~,~,c] = this.cmd('flirt', opts); 
-            prod = mlfourd.ImagingContext.load( ...
+            prod = mlfourd.ImagingContext2( ...
                 this.thisOnThatImageFilename(opts.in, opts.init));
             lg = this.getLog(opts.in);
             prod.addLog(['From FlirtVisitor.transform__.opts.in:\n' lg.contents]);
@@ -411,7 +411,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             for sidx = 1:length(fn)
                 field = fn{sidx};
                 if (~ischar(s.(field)))
-                    assert(isa(s.(field), 'mlio.IOInterface') || isa(s.(field), 'mlfourd.ImagingContext'));
+                    assert(isa(s.(field), 'mlio.IOInterface') || isa(s.(field), 'mlfourd.ImagingContext2'));
                     s.(field) = s.(field).fqfilename;
                 end
             end
