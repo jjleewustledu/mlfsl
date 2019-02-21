@@ -165,7 +165,7 @@ classdef AbstractRegistrationBuilder
             end
             ic = ic.maskedByZ;
         end
-        function ic = ensureTimeDependent(this, ic, lent)
+        function ic = ensureTimeDependent(~, ic, lent)
             n = ic.niftid;
             z = zeros([n.size lent]);
             for t = 1:lent
@@ -173,7 +173,7 @@ classdef AbstractRegistrationBuilder
             end
             n.img = z;
             n.fileprefix = sprintf('%s%s%i', ic.fileprefix, '_x', lent);
-            ic = mlfourd.ImagingContext.recastImagingContext(n, class(ic));
+            ic = mlfourd.ImagingContext2(n);
         end
         function ic = ensureTimeIndep(~, ic)
             if (ic.rank < 4)

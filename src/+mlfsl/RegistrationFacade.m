@@ -244,7 +244,7 @@ classdef RegistrationFacade < handle
             nn1 = ic1.numericalNiftid;
             nn2 = ic2.numericalNiftid;
             nn  = nn1*rng1 + nn2*rng2;
-            ic  = mlfourd.ImagingContext.recastImagingContext(nn, class(ic1));
+            ic  = mlfourd.ImagingContext2(nn);
         end
         function [prod,xfm] = petRegisterAndInvertTransform(this, src, ref)
             if (isempty(src) || isempty(ref))

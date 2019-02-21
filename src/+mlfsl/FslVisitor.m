@@ -36,7 +36,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             if (~isempty(names))
                    dat = names(:,1).value;
             end
-        end se
+        end
         function [s,r,c] = fslmaths(varargin)
             [s,r,c] = mlfsl.FslVisitor.cmd('fslmaths', varargin{:});
         end       
