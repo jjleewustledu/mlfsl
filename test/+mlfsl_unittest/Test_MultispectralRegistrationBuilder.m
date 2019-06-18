@@ -120,7 +120,7 @@ classdef Test_MultispectralRegistrationBuilder < matlab.unittest.TestCase
 
  	methods (TestClassSetup)
  		function setupMultispectralAlignmentBuilder(this)
-            this.registry = mlpet.PETRegistry.instance('initialize');
+            this.registry = mlsiemens.ECATRegistry.instance('initialize');
             this.studyData = this.registry.testStudyData('test_derdeyn');
             iter = this.studyData.createIteratorForSessionData;
             this.sessionData = iter.next;

@@ -71,7 +71,7 @@ classdef FslRegistry < mlpatterns.Singleton
             p = fullfile(this.fsldir, 'data','atlases', this.atlasLibrary, '');
         end
         function bb  = get.baseBlur(~)
-            bb = norm(mlpet.PETRegistry.instance.petPointSpread);
+            bb = norm(mlsiemens.ECATRegistry.instance.petPointSpread);
         end
         function fld = get.betFolder(this)
             fld = ensuredir(this.betFolder);
