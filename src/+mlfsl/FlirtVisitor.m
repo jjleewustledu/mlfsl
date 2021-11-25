@@ -23,13 +23,16 @@ classdef FlirtVisitor < mlfsl.FslVisitor
         filetypeExt
     end    
 
-    methods %% GET/SET
-        function e    = get.filetypeExt(~)
-            e = mlfourd.NIfTId.FILETYPE_EXT;
+    methods 
+        
+        %% GET/SET
+
+        function e = get.filetypeExt(~)
+            e = '.nii.gz';
         end
-    end
-    
-	methods
+
+        %%
+
         function              ensureBuilderSaved(~, bldr)
             ims = {'sourceImage' 'referenceImage' 'sourceWeight' 'referenceWeight'};
             for idx = 1:length(ims)
@@ -154,7 +157,7 @@ classdef FlirtVisitor < mlfsl.FslVisitor
             xfm               = opts.init;
         end
         function bldr       = transform(this, bldr)
-            if (isdir(bldr.xfm))
+            if (isfolder(bldr.xfm))
                 bldr = this.transform4D(bldr);
                 return
             end
