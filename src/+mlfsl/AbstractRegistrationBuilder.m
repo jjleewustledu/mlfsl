@@ -189,8 +189,8 @@ classdef AbstractRegistrationBuilder
             %  @throws mlfsl:inconsistentImageSizes
             
             ip = inputParser;
-            addRequired(ip, 'wt',      @(x) isImagingContext(x) || isempty(x));
-            addOptional(ip, 'src', [], @(x) isImagingContext(x) || isempty(x));
+            addRequired(ip, 'wt',      @(x) isa(x, 'mlfourd.ImagingContext') || isempty(x));
+            addOptional(ip, 'src', [], @(x) isa(x, 'mlfourd.ImagingContext') || isempty(x));
             parse(ip, wt, varargin{:});
             
             if (isempty(ip.Results.wt))
