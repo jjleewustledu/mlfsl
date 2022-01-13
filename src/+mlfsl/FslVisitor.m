@@ -81,7 +81,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
         end
         
         function [s,r,c] = view(fns)
-            %% FSLVIEW launches fslview with NIfTI files named in the filelist
+            %% VIEW launches fsleyes with NIfTI files named in the filelist
             %  Usage:   [sta, std] = obj.fslview( 'file1')
             %           [sta, std] = obj.fslview({'file1' [, 'file2', options_struct]})
             %                                     ^          ^ string or cell array 
@@ -92,7 +92,7 @@ classdef FslVisitor < mlpipeline.PipelineVisitor
             fns = ensureCell(  fns);    
             if (~exist('optstrct','var')); optstrct = struct([]); end
             fns{length(fns)+1} = ' &';
-            [s,r,c] = FslVisitor.cmd('freeview', optstrct, fns);
+            [s,r,c] = FslVisitor.cmd('fsleyes', optstrct, fns);
         end 
         function fqfn    = transformFilename(varargin)
             if (1 == length(varargin))
