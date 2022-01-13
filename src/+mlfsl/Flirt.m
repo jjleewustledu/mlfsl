@@ -27,6 +27,42 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         refweight
         inweight
         interp
+        schedule
+    end
+
+    methods (Static)
+        function AtoC = compositionOfMaps(AtoB, BtoC)
+            %% COMPOSITIONOFMAPS generates a semantic filename for composition of maps, applicable for .nii.gz or .mat,
+            %  by retaining file extensions.  The path of AtoB is retained.
+            %  Params:
+            %      AtoB (filename): describing map A->B
+            %      BtoC (filename): describing map B->C
+            %  Returns:
+            %      AtoC (filename): describing map A->C
+
+            [pth,AtoB_fp,ext] = myfileparts(AtoB);
+            [~,BtoC_fp,ext1] = myfileparts(BtoC);
+            assert(strcmp(ext, ext1))
+            A_fp = extractBefore(AtoB_fp, "_on_");
+            s = split(string(BtoC_fp), "_on_");
+            C_fp = s(end);
+
+            AtoC = fullfile(pth, strcat(A_fp, "_on_", C_fp, ext));
+        end
+        function BtoA = inverseOfMap(AtoB)
+            %% INVERSEOFMAP generates a semantic filename for an inverse map, applicable for .nii.gz or .mat,
+            %  by preservation of file extensions.  The path is also preserved.
+            %  Params:
+            %      AtoB (filename): describing map A->B
+            %  Returns:
+            %      BtoA (filename): describing map B->A
+
+            [pth,AtoB_fp,ext] = myfileparts(AtoB);
+            A_fp = extractBefore(AtoB_fp, "_on_");
+            B_fp = extractAfter(AtoB_fp, "_on_");
+
+            BtoA = fullfile(pth, strcat(B_fp, "_on_", A_fp, ext));
+        end
     end
 
 	methods 
@@ -45,33 +81,42 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
         function     set.in(this, s)
             this.in_ = mlfourd.ImagingContext2(s);
-            this.in_.selectNifti();
+            this.in_.selectNiftiTool();
         end
         function g = get.ref(this)
             g = copy(this.ref_);
         end
         function     set.ref(this, s)
             this.ref_ = mlfourd.ImagingContext2(s);
-            this.ref_.selectNifti();
+            this.ref_.selectNiftiTool();
         end
         function g = get.out(this)
             g = copy(this.out_);
         end
         function     set.out(this, s)
             this.out_ = mlfourd.ImagingContext2(s);
-            this.out_.selectNifti();
+            this.out_.selectNiftiTool();
         end
         function g = get.init(this)
-            g = this.omat;
+            if ~isempty(this.init_)
+                g = this.init_;
+                return
+            end
+            if ~isempty(this.omat_)
+                g = this.omat_;
+                return
+            end
+            error('mlfsl:ValueError', 'Flirt.get.init')
         end
         function     set.init(this, s)
+            assert(istext(s))
             this.omat = s;
         end
         function g = get.omat(this)
             g = this.omat_;
         end
         function     set.omat(this, s)
-            assert(isscalar(s))
+            assert(istext(s))
             this.omat_ = s;
         end
         function g = get.bins(this)
@@ -85,7 +130,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             g = this.cost_;
         end
         function     set.cost(this, s)
-            assert(ischar(s))
+            assert(istext(s))
             this.cost_ = s;
         end
         function g = get.searchrx(this)
@@ -141,7 +186,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
         function     set.refweight(this, s)
             this.refweight_ = mlfourd.ImagingContext2(s);
-            this.refweight_.selectNifti();
+            this.refweight_.selectNiftiTool();
         end
         function g = get.inweight(this)
             if isa(this.inweight_, 'mlfourd.ImagingContext2')
@@ -152,14 +197,21 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
         function     set.inweight(this, s)
             this.inweight_ = mlfourd.ImagingContext2(s);
-            this.inweight_.selectNifti();
+            this.inweight_.selectNiftiTool();
         end
         function g = get.interp(this)
             g = this.interp_;
         end
         function     set.interp(this, s)
-            assert(ischar(s))
+            assert(istext(s))
             this.interp_ = s;
+        end
+        function g = get.schedule(this)
+            g = this.schedule_;
+        end
+        function     set.schedule(this, s)
+            assert(istext(s))
+            this.schedule_ = s;
         end
 
         %%
@@ -218,9 +270,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             addParameter(ip, 'in', [])
             addParameter(ip, 'ref', [])
             addParameter(ip, 'out', [])
-            addParameter(ip, 'omat', '', @ischar)
+            addParameter(ip, 'omat', '', @istext)
             addParameter(ip, 'bins', 256, @isscalar)
-            addParameter(ip, 'cost', 'corratio', @ischar)
+            addParameter(ip, 'cost', 'corratio', @istext)
             addParameter(ip, 'searchrx', [], @isnumeric)
             addParameter(ip, 'searchry', [], @isnumeric)
             addParameter(ip, 'searchrz', [], @isnumeric)
@@ -228,22 +280,23 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             addParameter(ip, 'paddingsize', 0.0, @isscalar)
             addParameter(ip, 'refweight', [])
             addParameter(ip, 'inweight', [])
-            addParameter(ip, 'interp', 'trilinear', @ischar)
+            addParameter(ip, 'interp', 'trilinear', @istext)
+            addParameter(ip, 'schedule', '', @istext)
             parse(ip, varargin{:})
             ipr = ip.Results;
             this.in_ = mlfourd.ImagingContext2(ipr.in);
-            this.in_.selectNifti();
+            this.in_.selectNiftiTool();
             assert(~isempty(this.in_))
             this.ref_ = mlfourd.ImagingContext2(ipr.ref);
-            this.ref_.selectNifti();
+            this.ref_.selectNiftiTool();
             assert(~isempty(this.ref_))
             if isempty(ipr.out)
                 ipr.out = sprintf('%s_on_%s.nii.gz', this.in_.fqfp, this.ref_.fileprefix);
             end
             this.out_ = mlfourd.ImagingContext2(ipr.out);
-            this.out_.selectNifti();
+            this.out_.selectNiftiTool();
             if isempty(ipr.omat)
-                ipr.omat = [this.out_.fqfp '.mat'];
+                ipr.omat = strcat(this.out_.fqfp, '.mat');
             end
             this.omat_ = ipr.omat;
             this.bins_ = ipr.bins;
@@ -273,44 +326,19 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             this.paddingsize_ = ipr.paddingsize;
             if ~isempty(ipr.refweight)
                 this.refweight_ = mlfourd.ImagingContext2(ipr.refweight);
-                this.refweight_.selectNifti();
+                this.refweight_.selectNiftiTool();
             end
             if ~isempty(ipr.inweight)
                 this.inweight_ = mlfourd.ImagingContext2(ipr.inweight);
-                this.inweight_.selectNifti();
+                this.inweight_.selectNiftiTool();
             end
             this.interp_ = ipr.interp;
+            this.schedule_ = ipr.schedule;
         end
-
-        function [s,r] = flirt(this)
-            opts = sprintf('-bins %i -cost %s -searchrx %s -searchry %s -searchrz %s -dof %i', ...
-                this.bins, this.cost, num2str(this.searchrx), num2str(this.searchry), num2str(this.searchrz), this.dof);
-            if isa(this.refweight, 'mlfourd.ImagingContext2')
-                opts = sprintf('%s -refweight %s', opts, this.refweight.fqfn);
-            end
-            if isa(this.inweight, 'mlfourd.ImagingContext2')
-                opts = sprintf('%s -inweight %s', opts, this.inweight.fqfn);
-            end
-            if ~isfile(this.in.fqfn)
-                this.in.save();
-            end
-            if ~isfile(this.ref.fqfn)
-                this.ref.save();
-            end
-            if ~isfile(this.refweight.fqfn)
-                this.refweight.save();
-            end
-            if ~isfile(this.inweight.fqfn)
-                this.inweight.save();
-            end
-            cmd = sprintf('%s -in %s -ref %s -out %s -omat %s %s -interp %s', ...
-                this.exec, this.in.fqfn, this.ref.fqfn, this.out.fqfn, this.omat, ...
-                opts, ...
-                this.interp);
-            fprintf('mlfsl.Flirt.flirt:\n%s\n', cmd)
-            [s,r] = mlbash(cmd);
-        end
+        
         function [s,r] = applyXfm(this)
+            %% uses this.init, which defaults to this.omat
+
             if ~isfile(this.in.fqfn)
                 this.in.save();
             end
@@ -325,13 +353,115 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             fprintf('mlfsl.Flirt.applyXfm:\n%s\n', cmd)
             [s,r] = mlbash(cmd);
         end
-        function [s,r] = concatXfm(this)
+        function [s,r] = concatXfm(this, varargin)
+            %  Params:
+            %      AtoB (text)
+            %      BtoC (text)
+            %      AtoC (text): option, default given by compositionOfMaps(AtoB, BtoC).
+            %  Returns:
+            %      this.init: updated.
+
+            ip = inputParser;
+            addParameter(ip, 'AtoB', this.omat, @(x) istext(x) && contains(x, '.mat'))
+            addParameter(ip, 'BtoC', '', @(x) istext(x) && contains(x, '.mat'))
+            addParameter(ip, 'AtoC', '', @istext)
+            parse(ip, varargin{:})
+            ipr = ip.Results;
+            if isempty(ipr.AtoC)
+                ipr.AtoC = this.compositionOfMaps(ipr.AtoB, ipr.BtoC);
+            end
+
+            exec_ = fullfile(getenv('FSLDIR'), 'bin', 'convert_xfm');
+            cmd = sprintf('%s -omat %s -concat %s %s', exec_, ipr.AtoC, ipr.BtoC, ipr.AtoB);
+            fprintf('mlfsl.Flirt.concatXfm:\n%s\n', cmd)
+            [s,r] = mlbash(cmd);
+
+            this.init_ = ipr.AtoC;
         end
-        function [s,r] = invertXfm(this)
+        function [c,s,j] = cost_final(this)
+            %  Returns:
+            %      c (scalar): numerical value of cost
+            %      s: struct for json
+            %      j: json text
+            cmd = sprintf('%s -in %s -ref %s -schedule %s/etc/flirtsch/measurecost1.sch -init %s -cost %s', ...
+                this.exec, this.in.fqfn, this.ref.fqfn, getenv('FSLDIR'), this.init, this.cost);
+            fprintf('mlfsl.Flirt.cost_final:\n%s\n', cmd)
+            [s,r] = mlbash(cmd);
+            assert(0 == s)
+            lines = splitlines(r);
+            line = sscanf(lines{1}, '%f')';
+            c = line(1);
+            [~,i] = max(contains(lines, 'Final'));
+            mat = [];
+            for i1 = i+1:length(lines)
+                if ~isempty(lines{i1})
+                    mat = [mat; sscanf(lines{i1}, '%f')']; %#ok<AGROW> 
+                end
+            end
+            s = struct('cost_final', ...
+                struct( ...
+                'cost', c, ...
+                'first_line', line, ...
+                'final_result', mat));
+            j = jsonencode(s);
+        end
+        function [s,r] = flirt(this)
+            opts = sprintf('-bins %i -cost %s -searchrx %s -searchry %s -searchrz %s -dof %i', ...
+                this.bins, this.cost, num2str(this.searchrx), num2str(this.searchry), num2str(this.searchrz), this.dof);
+            if ~isempty(this.schedule)
+                opts = sprintf('%s -schedule %s', opts, this.schedule);
+            end
+            if isa(this.refweight, 'mlfourd.ImagingContext2')
+                if ~isfile(this.refweight.fqfn)
+                    this.refweight.save();
+                end
+                opts = sprintf('%s -refweight %s', opts, this.refweight.fqfn);
+            end
+            if isa(this.inweight, 'mlfourd.ImagingContext2')
+                if ~isfile(this.inweight.fqfn)
+                    this.inweight.save();
+                end
+                opts = sprintf('%s -inweight %s', opts, this.inweight.fqfn);
+            end
+            if ~isfile(this.in.fqfn)
+                this.in.save();
+            end
+            if ~isfile(this.ref.fqfn)
+                this.ref.save();
+            end
+            if ~isempty(this.out)
+                cmd = sprintf('%s -in %s -ref %s -out %s -omat %s %s -interp %s', ...
+                    this.exec, this.in.fqfn, this.ref.fqfn, this.out.fqfn, this.omat, opts, this.interp);
+            else
+                cmd = sprintf('%s -in %s -ref %s -omat %s %s -interp %s', ...
+                    this.exec, this.in.fqfn, this.ref.fqfn, this.omat, opts, this.interp);
+            end
+            fprintf('mlfsl.Flirt.flirt:\n%s\n', cmd)
+            [s,r] = mlbash(cmd);
         end
         function [s,r] = fsleyes(this, varargin)
             exec_ = fullfile(getenv('FSLDIR'), 'bin', 'fsleyes');
-            [s,r] = mlbash(sprintf('%s %s %s', exec_, this.out.fqfn, cell2str(varargin)));
+            cmd = sprintf('%s %s %s', exec_, this.out.fqfn, cell2str(varargin));
+            [s,r] = mlbash(cmd);
+        end
+        function [s,r] = invertXfm(this, varargin)
+            %  Params:
+            %      AtoB (text): option, default is this.omat.
+            %  Returns:
+            %      this.init: updated.
+
+            ip = inputParser;
+            addParameter(ip, 'AtoB', this.omat, @(x) istext(x) && contains(x, '.mat'))
+            parse(ip, varargin{:})
+            ipr = ip.Results;
+            BtoA = this.inverseOfMap(ipr.AtoB);
+
+            exec_ = fullfile(getenv('FSLDIR'), 'bin', 'convert_xfm');
+            cmd = sprintf('%s -omat %s -inverse %s', exec_, BtoA, ipr.AtoB);
+            fprintf('mlfsl.Flirt.invertXfm:\n%s\n', cmd)
+            [s,r] = mlbash(cmd);
+
+            this.init_ = BtoA;
         end
     end 
 
@@ -345,28 +475,34 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             that.in_ = copy(this.in_);
             that.ref_ = copy(this.ref_);
             that.out_ = copy(this.out_);
-            that.refweight_ = copy(this.refweight_);
-            that.inweight_ = copy(this.inweight_);
+            if ishandle(this.refweight_)
+                that.refweight_ = copy(this.refweight_);
+            end
+            if ishandle(this.inweight_)
+                that.inweight_ = copy(this.inweight_);
+            end
         end
     end
 
     %% PRIVATE
 
     properties (Access = private)
-        in_
-        ref_
-        out_
-        omat_
         bins_
         cost_
+        dof_
+        in_
+        init_
+        interp_
+        inweight_
+        out_
+        omat_
+        paddingsize_
+        ref_
+        refweight_
+        schedule_
         searchrx_
         searchry_
         searchrz_
-        dof_
-        paddingsize_
-        refweight_
-        inweight_
-        interp_
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
