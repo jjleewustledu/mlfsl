@@ -294,11 +294,16 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 ipr.out = sprintf('%s_on_%s.nii.gz', this.in_.fqfp, this.ref_.fileprefix);
             end
             this.out_ = mlfourd.ImagingContext2(ipr.out);
-            this.out_.selectNiftiTool();
+            if ~isfolder(fileparts(this.out_.filepath))
+                mkdir(this.out_.filepath);
+            end
             if isempty(ipr.omat)
                 ipr.omat = strcat(this.out_.fqfp, '.mat');
             end
             this.omat_ = ipr.omat;
+            if ~isfolder(fileparts(this.omat_))
+                mkdir(this.omat_);
+            end
             this.bins_ = ipr.bins;
             this.cost_ = ipr.cost;
             if isempty(ipr.searchrx)
@@ -386,9 +391,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             cmd = sprintf('%s -in %s -ref %s -schedule %s/etc/flirtsch/measurecost1.sch -init %s -cost %s', ...
                 this.exec, this.in.fqfn, this.ref.fqfn, getenv('FSLDIR'), this.init, this.cost);
             fprintf('mlfsl.Flirt.cost_final:\n%s\n', cmd)
-            [s,r] = mlbash(cmd);
-            assert(0 == s)
-            lines = splitlines(r);
+            [s_,r_] = mlbash(cmd);
+            assert(0 == s_)
+            lines = splitlines(r_);
             line = sscanf(lines{1}, '%f')';
             c = line(1);
             [~,i] = max(contains(lines, 'Final'));
@@ -398,12 +403,13 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                     mat = [mat; sscanf(lines{i1}, '%f')']; %#ok<AGROW> 
                 end
             end
-            s = struct('cost_final', ...
-                struct( ...
-                'cost', c, ...
-                'first_line', line, ...
-                'final_result', mat));
-            j = jsonencode(s);
+            s = struct('mlfsl_Flirt', ...
+                  struct('cost_final', ...
+                    struct( ...
+                      'cost', c, ...
+                      'first_line', line, ...
+                      'final_result', mat)));
+            j = jsonencode(s, 'PrettyPrint', true);
         end
         function [s,r] = flirt(this)
             opts = sprintf('-bins %i -cost %s -searchrx %s -searchry %s -searchrz %s -dof %i', ...
