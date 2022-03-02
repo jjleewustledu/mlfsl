@@ -63,6 +63,40 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
 
             BtoA = fullfile(pth, strcat(B_fp, "_on_", A_fp, ext));
         end
+        function mskfn = msktgen(varargin)
+            %  Args:
+            %      niifn (file): upon which to generate mask.
+            %      targfn (file): atlas used to generate mask, which has corresponding *_brain_mask_dil.nii.gz.
+
+            ip = inputParser;
+            addRequired(ip, 'niifn', @isfile);
+            addParameter(ip, 'targfn', fullfile(getenv('FSLDIR'), 'data', 'standard', 'MNI152_T1_1mm.nii.gz'), @isfile);
+            addParameter(ip, 'workpath', pwd, @isfolder)
+            parse(ip, varargin{:});
+            ipr = ip.Results;
+
+            pwd0 = pushd(ipr.workpath);
+
+            niifn_ = strcat(mybasename(ipr.niifn), '_on_MNI', '.nii.gz');
+            dilfn = strcat(myfileprefix(ipr.targfn), '_brain_mask_dil', '.nii.gz');
+            mskfn = strcat(mybasename(ipr.niifn), '_mskt', '.nii.gz');
+            assert(isfile(dilfn))
+
+            f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, 'dof', 12);
+            f.flirt(); % ipr.niifn -> niifn_
+            f.invertXfm();
+            %deleteExisting(matfn_);
+            f.in = dilfn;
+            f.ref = ipr.niifn;
+            f.out = mskfn;
+            f.applyXfm(); % dilfn -> ipr.niifn
+            %deleteExisting(f.init)
+
+            ic = mlfourd.ImagingContext2(ipr.niifn);
+            ic.view(mskfn);
+
+            popd(pwd0);
+        end
     end
 
 	methods 
