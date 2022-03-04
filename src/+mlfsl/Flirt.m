@@ -89,11 +89,12 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             f.in = dilfn;
             f.ref = ipr.niifn;
             f.out = mskfn;
+            f.interp = 'nearestneighbour';
             f.applyXfm(); % dilfn -> ipr.niifn
             %deleteExisting(f.init)
 
-            ic = mlfourd.ImagingContext2(ipr.niifn);
-            ic.view(mskfn);
+            %ic = mlfourd.ImagingContext2(ipr.niifn);
+            %ic.view(mskfn);
 
             popd(pwd0);
         end
