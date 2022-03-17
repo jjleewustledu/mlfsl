@@ -5,30 +5,6 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
  	%  was created 22-Nov-2021 22:45:20 by jjlee,
  	%  last modified $LastChangedDate$ and placed into repository /Users/jjlee/MATLAB-Drive/mlfsl/src/+mlfsl.
  	%% It was developed on Matlab 9.11.0.1809720 (R2021b) Update 1 for MACI64.  Copyright 2021 John Joowon Lee.
- 	
-	properties
-    end
-
-    properties (Dependent)
-        exec
-
-        in  % mlfourd.ImagingContext2
-        ref % mlfourd.ImagingContext2
-        out % mlfourd.ImagingContext2
-        init
-        omat
-        bins
-        cost
-        searchrx
-        searchry
-        searchrz
-        dof
-        paddingsize
-        refweight
-        inweight
-        interp
-        schedule
-    end
 
     methods (Static)
         function AtoC = compositionOfMaps(AtoB, BtoC)
@@ -67,6 +43,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             %  Args:
             %      niifn (file): upon which to generate mask.
             %      targfn (file): atlas used to generate mask, which has corresponding *_brain_mask_dil.nii.gz.
+            %      workpath (folder): within which to store results.
+            %  Returns:
+            %      mskfn (file)
 
             ip = inputParser;
             addRequired(ip, 'niifn', @isfile);
@@ -79,7 +58,10 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
 
             niifn_ = strcat(mybasename(ipr.niifn), '_on_MNI', '.nii.gz');
             dilfn = strcat(myfileprefix(ipr.targfn), '_brain_mask_dil', '.nii.gz');
-            mskfn = strcat(mybasename(ipr.niifn), '_mskt', '.nii.gz');
+            mskfn = fullfile(pwd, strcat(mybasename(ipr.niifn), '_mskt', '.nii.gz'));
+            if isfile(mskfn)
+                return
+            end
             assert(isfile(dilfn))
 
             f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, 'dof', 12);
@@ -91,13 +73,36 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             f.out = mskfn;
             f.interp = 'nearestneighbour';
             f.applyXfm(); % dilfn -> ipr.niifn
-            %deleteExisting(f.init)
+            deleteExisting(f.init);
+            deleteExisting(f.omat);
+            deleteExisting(niifn_);
 
             %ic = mlfourd.ImagingContext2(ipr.niifn);
             %ic.view(mskfn);
 
             popd(pwd0);
         end
+    end
+ 	
+    properties (Dependent)
+        exec
+
+        in  % mlfourd.ImagingContext2
+        ref % mlfourd.ImagingContext2
+        out % mlfourd.ImagingContext2
+        init
+        omat
+        bins
+        cost
+        searchrx
+        searchry
+        searchrz
+        dof
+        paddingsize
+        refweight
+        inweight
+        interp
+        schedule
     end
 
 	methods 
