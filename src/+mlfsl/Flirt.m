@@ -47,6 +47,10 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             %  Returns:
             %      mskfn (file)
 
+            if ~isempty(getenv('DEBUG'))
+                disp(ascol(varargin))
+            end
+            
             ip = inputParser;
             addRequired(ip, 'niifn', @isfile);
             addParameter(ip, 'targfn', fullfile(getenv('FSLDIR'), 'data', 'standard', 'MNI152_T1_1mm.nii.gz'), @isfile);
