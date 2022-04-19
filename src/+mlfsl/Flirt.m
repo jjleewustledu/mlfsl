@@ -44,6 +44,8 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             %      niifn (file): upon which to generate mask.
             %      targfn (file): atlas used to generate mask, which has corresponding *_brain_mask_dil.nii.gz.
             %      workpath (folder): within which to store results.
+            %      cost (text): per flirt.
+            %      dof (scalar): per flirt.
             %  Returns:
             %      mskfn (file)
 
@@ -55,6 +57,8 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             addRequired(ip, 'niifn', @isfile);
             addParameter(ip, 'targfn', fullfile(getenv('FSLDIR'), 'data', 'standard', 'MNI152_T1_1mm.nii.gz'), @isfile);
             addParameter(ip, 'workpath', pwd, @isfolder)
+            addParameter(ip, 'cost', 'corratio', @istext)
+            addParameter(ip, 'dof', 12, @isscalar)
             parse(ip, varargin{:});
             ipr = ip.Results;
 
@@ -68,7 +72,8 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             end
             assert(isfile(dilfn))
 
-            f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, 'dof', 12);
+            f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, ...
+                'cost', ipr.cost, 'dof', ipr.dof);
             f.flirt(); % ipr.niifn -> niifn_
             f.invertXfm();
             %deleteExisting(matfn_);
@@ -427,11 +432,17 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
 
             this.init_ = ipr.AtoC;
         end
-        function [c,s,j] = cost_final(this)
+        function [c,s,j] = cost_final(this, varargin)
             %  Returns:
             %      c (scalar): numerical value of cost
             %      s: struct for json
             %      j: json text
+            
+            ip = inputParser;
+            addOptional(ip, 'cost_field', 'cost_final', @istext)
+            parse(ip, varargin{:})
+            ipr = ip.Results;
+            
             cmd = sprintf('%s -in %s -ref %s -schedule %s/etc/flirtsch/measurecost1.sch -init %s -cost %s', ...
                 this.exec, this.in.fqfn, this.ref.fqfn, getenv('FSLDIR'), this.init, this.cost);
             fprintf('mlfsl.Flirt.cost_final:\n%s\n', cmd)
@@ -448,8 +459,12 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 end
             end
             s = struct('mlfsl_Flirt', ...
-                  struct('cost_final', ...
+                  struct(ipr.cost_field, ...
                     struct( ...
+                      'in', this.in.fqfilename, ...
+                      'ref', this.ref.fqfilename, ...
+                      'init', this.init, ...
+                      'cost_metric', this.cost, ...
                       'cost', c, ...
                       'first_line', line, ...
                       'final_result', mat)));
