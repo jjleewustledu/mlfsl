@@ -73,7 +73,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             assert(isfile(dilfn))
 
             f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, ...
-                'cost', ipr.cost, 'dof', ipr.dof);
+                'cost', ipr.cost, 'dof', ipr.dof, 'noclobber', true);
             f.flirt(); % ipr.niifn -> niifn_
             f.invertXfm();
             %deleteExisting(matfn_);
@@ -112,6 +112,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         inweight
         interp
         schedule
+        noclobber
     end
 
 	methods 
@@ -130,21 +131,21 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
         function     set.in(this, s)
             this.in_ = mlfourd.ImagingContext2(s);
-            this.in_.selectNiftiTool();
+            %this.in_.selectNiftiTool();
         end
         function g = get.ref(this)
             g = copy(this.ref_);
         end
         function     set.ref(this, s)
             this.ref_ = mlfourd.ImagingContext2(s);
-            this.ref_.selectNiftiTool();
+            %this.ref_.selectNiftiTool();
         end
         function g = get.out(this)
             g = copy(this.out_);
         end
         function     set.out(this, s)
             this.out_ = mlfourd.ImagingContext2(s);
-            this.out_.selectNiftiTool();
+            %this.out_.selectNiftiTool();
         end
         function g = get.init(this)
             if ~isempty(this.init_)
@@ -158,6 +159,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             error('mlfsl:ValueError', 'Flirt.get.init')
         end
         function     set.init(this, s)
+            if isa(s, 'mlio.IOInterface')
+                s = strcat(s.fqfp, '.mat');
+            end
             assert(istext(s))
             this.omat = s;
         end
@@ -165,6 +169,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             g = this.omat_;
         end
         function     set.omat(this, s)
+            if isa(s, 'mlio.IOInterface')
+                s = strcat(s.fqfp, '.mat');
+            end
             assert(istext(s))
             this.omat_ = s;
         end
@@ -235,7 +242,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
         function     set.refweight(this, s)
             this.refweight_ = mlfourd.ImagingContext2(s);
-            this.refweight_.selectNiftiTool();
+            %this.refweight_.selectNiftiTool();
         end
         function g = get.inweight(this)
             if isa(this.inweight_, 'mlfourd.ImagingContext2')
@@ -246,7 +253,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         end
         function     set.inweight(this, s)
             this.inweight_ = mlfourd.ImagingContext2(s);
-            this.inweight_.selectNiftiTool();
+            %this.inweight_.selectNiftiTool();
         end
         function g = get.interp(this)
             g = this.interp_;
@@ -261,6 +268,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         function     set.schedule(this, s)
             assert(istext(s))
             this.schedule_ = s;
+        end
+        function g = get.noclobber(this)
+            g = this.noclobber_;
         end
 
         %%
@@ -313,13 +323,14 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             %  @param 2D                                (use 2D rigid body mode - ignores dof)
             %  @param verbose <num>                     (0 is least and default)
             %  @param v                                 (same as -verbose 1)
+            %  @param noclobber                         (don't overwrite existing; default is false)
 
             ip = inputParser;
             ip.KeepUnmatched = true;
             addParameter(ip, 'in', [])
             addParameter(ip, 'ref', [])
             addParameter(ip, 'out', [])
-            addParameter(ip, 'omat', '', @istext)
+            addParameter(ip, 'omat', '')
             addParameter(ip, 'bins', 256, @isscalar)
             addParameter(ip, 'cost', 'corratio', @istext)
             addParameter(ip, 'searchrx', [], @isnumeric)
@@ -331,13 +342,20 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             addParameter(ip, 'inweight', [])
             addParameter(ip, 'interp', 'trilinear', @istext)
             addParameter(ip, 'schedule', '', @istext)
+            addParameter(ip, 'noclobber', false, @islogical)
             parse(ip, varargin{:})
             ipr = ip.Results;
             this.in_ = mlfourd.ImagingContext2(ipr.in);
-            this.in_.selectNiftiTool();
+            %this.in_.selectNiftiTool();
+            if contains(this.in_.fileprefix, 'reslice')
+                this.in_.save();
+            end
             assert(~isempty(this.in_))
             this.ref_ = mlfourd.ImagingContext2(ipr.ref);
-            this.ref_.selectNiftiTool();
+            %this.ref_.selectNiftiTool();
+            if contains(this.ref_.fileprefix, 'reslice')
+                this.ref_.save();
+            end
             assert(~isempty(this.ref_))
             if isempty(ipr.out)
                 ipr.out = sprintf('%s_on_%s.nii.gz', this.in_.fqfp, this.ref_.fileprefix);
@@ -348,10 +366,22 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             end
             if isempty(ipr.omat)
                 ipr.omat = strcat(this.out_.fqfp, '.mat');
+            end  
+            if istext(ipr.omat)
+                this.omat_ = ipr.omat;
+            end          
+            if isa(ipr.omat, 'mlio.IOInterface')
+                this.omat_ = strcat(ipr.omat.fqfp, '.mat');
             end
-            this.omat_ = ipr.omat;
-            if ~isfolder(fileparts(this.omat_))
-                mkdir(this.omat_);
+            try
+                if (ischar(this.omat_) && ~isempty(this.omat_)) || ...
+                   (isstring(this.omat_) && "" ~= this.omat_)
+                    if ~isfolder(fileparts(this.omat_))
+                        mkdir(fileparts(this.omat_));
+                    end
+                end
+            catch ME
+                handwarning(ME)
             end
             this.bins_ = ipr.bins;
             this.cost_ = ipr.cost;
@@ -380,19 +410,23 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             this.paddingsize_ = ipr.paddingsize;
             if ~isempty(ipr.refweight)
                 this.refweight_ = mlfourd.ImagingContext2(ipr.refweight);
-                this.refweight_.selectNiftiTool();
+                %this.refweight_.selectNiftiTool();
             end
             if ~isempty(ipr.inweight)
                 this.inweight_ = mlfourd.ImagingContext2(ipr.inweight);
-                this.inweight_.selectNiftiTool();
+                %this.inweight_.selectNiftiTool();
             end
             this.interp_ = ipr.interp;
             this.schedule_ = ipr.schedule;
+            this.noclobber_ = ipr.noclobber;
         end
         
         function [s,r] = applyXfm(this)
             %% uses this.init, which defaults to this.omat
 
+            if this.noclobber && isfile(this.out.fqfn)
+                return
+            end
             if ~isfile(this.in.fqfn)
                 this.in.save();
             end
@@ -406,6 +440,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 this.interp);
             fprintf('mlfsl.Flirt.applyXfm:\n%s\n', cmd)
             [s,r] = mlbash(cmd);
+            this.jsonrecode_registration_cost();
         end
         function [s,r] = concatXfm(this, varargin)
             %  Params:
@@ -471,6 +506,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             j = jsonencode(s, 'PrettyPrint', true);
         end
         function [s,r] = flirt(this)
+            if this.noclobber && isfile(this.out.fqfn)
+                return
+            end
             opts = sprintf('-bins %i -cost %s -searchrx %s -searchry %s -searchrz %s -dof %i', ...
                 this.bins, this.cost, num2str(this.searchrx), num2str(this.searchry), num2str(this.searchrz), this.dof);
             if ~isempty(this.schedule)
@@ -494,15 +532,11 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             if ~isfile(this.ref.fqfn)
                 this.ref.save();
             end
-            if ~isempty(this.out)
-                cmd = sprintf('%s -in %s -ref %s -out %s -omat %s %s -interp %s', ...
-                    this.exec, this.in.fqfn, this.ref.fqfn, this.out.fqfn, this.omat, opts, this.interp);
-            else
-                cmd = sprintf('%s -in %s -ref %s -omat %s %s -interp %s', ...
-                    this.exec, this.in.fqfn, this.ref.fqfn, this.omat, opts, this.interp);
-            end
+            cmd = sprintf('%s -in %s -ref %s -out %s -omat %s %s -interp %s', ...
+                this.exec, this.in.fqfn, this.ref.fqfn, this.out.fqfn, this.omat, opts, this.interp);
             fprintf('mlfsl.Flirt.flirt:\n%s\n', cmd)
             [s,r] = mlbash(cmd);
+            this.jsonrecode_registration_cost();
         end
         function [s,r] = fsleyes(this, varargin)
             exec_ = fullfile(getenv('FSLDIR'), 'bin', 'fsleyes');
@@ -527,6 +561,20 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             [s,r] = mlbash(cmd);
 
             this.init_ = BtoA;
+        end
+        function jsonrecode_registration_cost(this)
+            try
+                in_json = strcat(myfileprefix(this.in), '.json');
+                if ~isfile(in_json)
+                    return
+                end
+                j0 = fileread(in_json);
+                [~,j1] = f.cost_final();
+                out_json = strcat(myfileprefix(this.out), '.json');
+                jsonrecode(j0, j1, 'filenameNew', out_json);
+            catch ME
+                %handwarning(ME)
+            end
         end
     end 
 
@@ -559,6 +607,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         init_
         interp_
         inweight_
+        noclobber_
         out_
         omat_
         paddingsize_
