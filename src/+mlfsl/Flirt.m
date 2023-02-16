@@ -46,6 +46,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             %      workpath (folder): within which to store results.
             %      cost (text): per flirt.
             %      dof (scalar): per flirt.
+            %      dilation (text): in {'', '_dil', '_dil1'}
             %  Returns:
             %      mskfn (file)
 
@@ -59,13 +60,14 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             addParameter(ip, 'workpath', pwd, @isfolder)
             addParameter(ip, 'cost', 'corratio', @istext)
             addParameter(ip, 'dof', 12, @isscalar)
+            addParameter(ip, 'dilation', '_dil', @istext)
             parse(ip, varargin{:});
             ipr = ip.Results;
 
             pwd0 = pushd(ipr.workpath);
 
             niifn_ = strcat(mybasename(ipr.niifn), '_on_MNI', '.nii.gz');
-            dilfn = strcat(myfileprefix(ipr.targfn), '_brain_mask_dil', '.nii.gz');
+            dilfn = strcat(myfileprefix(ipr.targfn), strcat('_brain_mask', ipr.dilation), '.nii.gz');
             mskfn = fullfile(pwd, strcat(mybasename(ipr.niifn), '_mskt', '.nii.gz'));
             if isfile(mskfn)
                 return

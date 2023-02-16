@@ -185,13 +185,13 @@ classdef RegistrationFacade < handle
         
  		function this = RegistrationFacade(varargin)
  			%% RegistrationFacade
-            %  @param sessionData is an mlpipeline.SessionData specifying identifiers for the study session, including
+            %  @param sessionData is an mlpipeline.ISessionData specifying identifiers for the study session, including
             %  Freesurfer's recon-all results (T1.mgz is in Talairach space) and all PET data.
             %  @param registrationBuilder is an mlfsl.RegistrationBuilder, a builder pattern.
             %  @return this is a facade pattern for imaging alignment.
 
             ip = inputParser;
-            addParameter(ip, 'sessionData',         [], @(x) isa(x, 'mlpipeline.SessionData'));
+            addParameter(ip, 'sessionData',         [], @(x) isa(x, 'mlpipeline.ISessionData'));
             addParameter(ip, 'registrationBuilder', [], @(x) isa(x, 'mlfsl.AbstractRegistrationBuilder') || isempty(x));
             parse(ip, varargin{:});
             

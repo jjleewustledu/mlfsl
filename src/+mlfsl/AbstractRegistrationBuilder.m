@@ -311,7 +311,7 @@ classdef AbstractRegistrationBuilder
         
  		function this = AbstractRegistrationBuilder(varargin) 
  			%% ABSTRACTREGISTRATIONBUILDER 
-            %  @param [sessionData] is an instance of mlpipeline.SessionData.
+            %  @param [sessionData] is an instance of mlpipeline.ISessionData.
             %  @param [buildVisitor]
             %  @param [sourceWeight]
             %  @param [referenceWeight]

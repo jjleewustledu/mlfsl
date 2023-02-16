@@ -287,7 +287,7 @@ classdef Test_RegistrationFacade < matlab.unittest.TestCase
         end
         function test_setup(this)
             this.fatalAssertTrue(isvalid(this.testFacade));
-            this.fatalAssertInstanceOf(this.testFacade.sessionData,         'mlpipeline.SessionData');
+            this.fatalAssertInstanceOf(this.testFacade.sessionData,         'mlpipeline.SessionData2022');
             this.fatalAssertInstanceOf(this.testFacade.registrationBuilder, 'mlfsl.MultispectralRegistrationBuilder');
         end
 	end
