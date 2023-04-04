@@ -1,100 +1,18 @@
 classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
 	%% FLIRT provides an object-oriented implementation of FSL's flirt.
-
+    %  See also mlfsl.FslVisitor, mlfsl.FlirtVisitor.
 	%  $Revision$
  	%  was created 22-Nov-2021 22:45:20 by jjlee,
  	%  last modified $LastChangedDate$ and placed into repository /Users/jjlee/MATLAB-Drive/mlfsl/src/+mlfsl.
  	%% It was developed on Matlab 9.11.0.1809720 (R2021b) Update 1 for MACI64.  Copyright 2021 John Joowon Lee.
 
-    methods (Static)
-        function AtoC = compositionOfMaps(AtoB, BtoC)
-            %% COMPOSITIONOFMAPS generates a semantic filename for composition of maps, applicable for .nii.gz or .mat,
-            %  by retaining file extensions.  The path of AtoB is retained.
-            %  Params:
-            %      AtoB (filename): describing map A->B
-            %      BtoC (filename): describing map B->C
-            %  Returns:
-            %      AtoC (filename): describing map A->C
-
-            [pth,AtoB_fp,ext] = myfileparts(AtoB);
-            [~,BtoC_fp,ext1] = myfileparts(BtoC);
-            assert(strcmp(ext, ext1))
-            A_fp = extractBefore(AtoB_fp, "_on_");
-            s = split(string(BtoC_fp), "_on_");
-            C_fp = s(end);
-
-            AtoC = fullfile(pth, strcat(A_fp, "_on_", C_fp, ext));
-        end
-        function BtoA = inverseOfMap(AtoB)
-            %% INVERSEOFMAP generates a semantic filename for an inverse map, applicable for .nii.gz or .mat,
-            %  by preservation of file extensions.  The path is also preserved.
-            %  Params:
-            %      AtoB (filename): describing map A->B
-            %  Returns:
-            %      BtoA (filename): describing map B->A
-
-            [pth,AtoB_fp,ext] = myfileparts(AtoB);
-            A_fp = extractBefore(AtoB_fp, "_on_");
-            B_fp = extractAfter(AtoB_fp, "_on_");
-
-            BtoA = fullfile(pth, strcat(B_fp, "_on_", A_fp, ext));
-        end
-        function mskfn = msktgen(varargin)
-            %  Args:
-            %      niifn (file): upon which to generate mask.
-            %      targfn (file): atlas used to generate mask, which has corresponding *_brain_mask_dil.nii.gz.
-            %      workpath (folder): within which to store results.
-            %      cost (text): per flirt.
-            %      dof (scalar): per flirt.
-            %      dilation (text): in {'', '_dil', '_dil1'}
-            %  Returns:
-            %      mskfn (file)
-
-            if ~isempty(getenv('DEBUG'))
-                disp(ascol(varargin))
-            end
-            
-            ip = inputParser;
-            addRequired(ip, 'niifn', @isfile);
-            addParameter(ip, 'targfn', fullfile(getenv('FSLDIR'), 'data', 'standard', 'MNI152_T1_1mm.nii.gz'), @isfile);
-            addParameter(ip, 'workpath', pwd, @isfolder)
-            addParameter(ip, 'cost', 'corratio', @istext)
-            addParameter(ip, 'dof', 12, @isscalar)
-            addParameter(ip, 'dilation', '_dil', @istext)
-            parse(ip, varargin{:});
-            ipr = ip.Results;
-
-            pwd0 = pushd(ipr.workpath);
-
-            niifn_ = strcat(mybasename(ipr.niifn), '_on_MNI', '.nii.gz');
-            dilfn = strcat(myfileprefix(ipr.targfn), strcat('_brain_mask', ipr.dilation), '.nii.gz');
-            mskfn = fullfile(pwd, strcat(mybasename(ipr.niifn), '_mskt', '.nii.gz'));
-            if isfile(mskfn)
-                return
-            end
-            assert(isfile(dilfn))
-
-            f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, ...
-                'cost', ipr.cost, 'dof', ipr.dof, 'noclobber', true);
-            f.flirt(); % ipr.niifn -> niifn_
-            f.invertXfm();
-            %deleteExisting(matfn_);
-            f.in = dilfn;
-            f.ref = ipr.niifn;
-            f.out = mskfn;
-            f.interp = 'nearestneighbour';
-            f.applyXfm(); % dilfn -> ipr.niifn
-            deleteExisting(f.init);
-            deleteExisting(f.omat);
-            deleteExisting(niifn_);
-
-            %ic = mlfourd.ImagingContext2(ipr.niifn);
-            %ic.view(mskfn);
-
-            popd(pwd0);
-        end
+    properties (Constant)
+        MCF_SUFFIX      = '_mcf';
+        MEANVOL_SUFFIX  = '_avgt';
+        XFM_SUFFIX      = '.mat';
+        ALWAYS_SAVE     = false;
     end
- 	
+
     properties (Dependent)
         exec
 
@@ -117,10 +35,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         noclobber
     end
 
-	methods 
-
-        %% GET/SET
-
+	methods % GET/SET
         function g = get.exec(~)
             %% Usage: flirt [options] -in <inputvol> -ref <refvol> -out <outputvol>
             %         flirt [options] -in <inputvol> -ref <refvol> -omat <outputmatrix>
@@ -274,9 +189,9 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
         function g = get.noclobber(this)
             g = this.noclobber_;
         end
-
-        %%
-		  
+    end
+		
+    methods
  		function this = Flirt(varargin)
  			%% FLIRT
             %  @param in  <inputvol>                    (no default)
@@ -579,6 +494,96 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             end
         end
     end 
+
+    methods (Static)
+        function AtoC = compositionOfMaps(AtoB, BtoC)
+            %% COMPOSITIONOFMAPS generates a semantic filename for composition of maps, applicable for .nii.gz or .mat,
+            %  by retaining file extensions.  The path of AtoB is retained.
+            %  Params:
+            %      AtoB (filename): describing map A->B
+            %      BtoC (filename): describing map B->C
+            %  Returns:
+            %      AtoC (filename): describing map A->C
+
+            [pth,AtoB_fp,ext] = myfileparts(AtoB);
+            [~,BtoC_fp,ext1] = myfileparts(BtoC);
+            assert(strcmp(ext, ext1))
+            A_fp = extractBefore(AtoB_fp, "_on_");
+            s = split(string(BtoC_fp), "_on_");
+            C_fp = s(end);
+
+            AtoC = fullfile(pth, strcat(A_fp, "_on_", C_fp, ext));
+        end
+        function BtoA = inverseOfMap(AtoB)
+            %% INVERSEOFMAP generates a semantic filename for an inverse map, applicable for .nii.gz or .mat,
+            %  by preservation of file extensions.  The path is also preserved.
+            %  Params:
+            %      AtoB (filename): describing map A->B
+            %  Returns:
+            %      BtoA (filename): describing map B->A
+
+            [pth,AtoB_fp,ext] = myfileparts(AtoB);
+            A_fp = extractBefore(AtoB_fp, "_on_");
+            B_fp = extractAfter(AtoB_fp, "_on_");
+
+            BtoA = fullfile(pth, strcat(B_fp, "_on_", A_fp, ext));
+        end
+        function mskfn = msktgen(varargin)
+            %  Args:
+            %      niifn (file): upon which to generate mask.
+            %      targfn (file): atlas used to generate mask, which has corresponding *_brain_mask_dil.nii.gz.
+            %      workpath (folder): within which to store results.
+            %      cost (text): per flirt.
+            %      dof (scalar): per flirt.
+            %      dilation (text): in {'', '_dil', '_dil1'}
+            %  Returns:
+            %      mskfn (file)
+
+            if ~isempty(getenv('DEBUG'))
+                disp(ascol(varargin))
+            end
+            
+            ip = inputParser;
+            addRequired(ip, 'niifn', @isfile);
+            addParameter(ip, 'targfn', fullfile(getenv('FSLDIR'), 'data', 'standard', 'MNI152_T1_1mm.nii.gz'), @isfile);
+            addParameter(ip, 'workpath', pwd, @isfolder)
+            addParameter(ip, 'cost', 'corratio', @istext)
+            addParameter(ip, 'dof', 12, @isscalar)
+            addParameter(ip, 'dilation', '_dil', @istext)
+            parse(ip, varargin{:});
+            ipr = ip.Results;
+
+            pwd0 = pushd(ipr.workpath);
+
+            niifn_ = strcat(mybasename(ipr.niifn), '_on_MNI', '.nii.gz');
+            dilfn = strcat(myfileprefix(ipr.targfn), strcat('_brain_mask', ipr.dilation), '.nii.gz');
+            mskfn = fullfile(pwd, strcat(mybasename(ipr.niifn), '_mskt', '.nii.gz'));
+            if isfile(mskfn)
+                return
+            end
+            assert(isfile(dilfn))
+
+            f = mlfsl.Flirt('in', ipr.niifn, 'ref', ipr.targfn, 'out', niifn_, ...
+                'cost', ipr.cost, 'dof', ipr.dof, 'noclobber', true);
+            f.flirt(); % ipr.niifn -> niifn_
+            f.invertXfm();
+            %deleteExisting(matfn_);
+            f.in = dilfn;
+            f.ref = ipr.niifn;
+            f.out = mskfn;
+            f.interp = 'nearestneighbour';
+            f.applyXfm(); % dilfn -> ipr.niifn
+            deleteExisting(f.init);
+            deleteExisting(f.omat);
+            deleteExisting(niifn_);
+
+            %ic = mlfourd.ImagingContext2(ipr.niifn);
+            %ic.view(mskfn);
+
+            popd(pwd0);
+        end
+    end
+ 	
 
     %% PROTECTED    
     
