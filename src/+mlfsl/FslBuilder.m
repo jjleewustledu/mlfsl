@@ -59,7 +59,7 @@ classdef FslBuilder < mlfourd.ImageBuilder
             %           ^                                            ^ all strings
             
             dat = '';
-            [~,xmlish] = mlbash(['fslhd -x ' fprefix]);
+            [~,xmlish] = mlbash(strcat('fslhd -x ', fprefix));
             
             expression = ['\s+' pname '\s+=\s+''(?<value>\S+|\S+\s\S+|[\d\.\+\s\-]+)''$'];
             [~, names] = regexp(xmlish, expression, 'tokens', 'names', 'lineanchors');

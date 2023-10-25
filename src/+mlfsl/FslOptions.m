@@ -1,7 +1,7 @@
 classdef FslOptions < mlpipeline.AbstractOptions
 	%% FSLOPTIONS is the baseclass for options classes such as FlirtOptions, BetOptions, ...
     %  Usage:  obj = FslOptions; ...
-    %          mlbash(['executable' char(obj)]);
+    %          mlbash(strcat('executable', char(obj)));
     
 	%  $Revision: 2629 $
  	%  was created $Date: 2013-09-16 01:19:00 -0500 (Mon, 16 Sep 2013) $

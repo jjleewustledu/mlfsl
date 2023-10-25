@@ -1,4 +1,4 @@
-classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
+classdef Flirt < handle & mlsystem.IHandle
 	%% FLIRT provides an object-oriented implementation of FSL's flirt.
     %  See also mlfsl.FslVisitor, mlfsl.FlirtVisitor.
 	%  $Revision$
@@ -357,7 +357,12 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 this.interp);
             fprintf('mlfsl.Flirt.applyXfm:\n%s\n', cmd)
             [s,r] = mlbash(cmd);
-            this.jsonrecode_registration_cost();
+
+            % propagate json
+            if isfile(this.in.fqfp+".json")
+                copyfile(this.in.fqfp+".json", this.out.fqfp+".json")
+                this.json_add_metadata(cmd);
+            end
         end
         function [s,r] = concatXfm(this, varargin)
             %  Params:
@@ -384,11 +389,11 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
 
             this.init_ = ipr.AtoC;
         end
-        function [c,s,j] = cost_final(this, varargin)
+        function [c,s,t] = cost_final(this, varargin)
             %  Returns:
             %      c (scalar): numerical value of cost
             %      s: struct for json
-            %      j: json text
+            %      t: json text
             
             ip = inputParser;
             addOptional(ip, 'cost_field', 'cost_final', @istext)
@@ -420,7 +425,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                       'cost', c, ...
                       'first_line', line, ...
                       'final_result', mat)));
-            j = jsonencode(s, 'PrettyPrint', true);
+            t = jsonencode(s, 'PrettyPrint', true);
         end
         function [s,r] = flirt(this)
             if this.noclobber && isfile(this.out.fqfn)
@@ -453,7 +458,12 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
                 this.exec, this.in.fqfn, this.ref.fqfn, this.out.fqfn, this.omat, opts, this.interp);
             fprintf('mlfsl.Flirt.flirt:\n%s\n', cmd)
             [s,r] = mlbash(cmd);
-            this.jsonrecode_registration_cost();
+
+            % propagate json
+            if isfile(this.in.fqfp+".json")
+                copyfile(this.in.fqfp+".json", this.out.fqfp+".json")
+                this.json_add_metadata(cmd);
+            end
         end
         function [s,r] = fsleyes(this, varargin)
             exec_ = fullfile(getenv('FSLDIR'), 'bin', 'fsleyes');
@@ -467,7 +477,7 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
             %      this.init: updated.
 
             ip = inputParser;
-            addParameter(ip, 'AtoB', this.omat, @(x) istext(x) && contains(x, '.mat'))
+            addParameter(ip, 'AtoB', this.init, @(x) istext(x) && contains(x, '.mat'))
             parse(ip, varargin{:})
             ipr = ip.Results;
             BtoA = this.inverseOfMap(ipr.AtoB);
@@ -479,18 +489,23 @@ classdef Flirt < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable
 
             this.init_ = BtoA;
         end
-        function jsonrecode_registration_cost(this)
+        function json_add_metadata(this, cmd)
+            arguments
+                this mlfsl.Flirt
+                cmd {mustBeText} = 'unknown cmd'
+            end
+
             try
-                in_json = strcat(myfileprefix(this.in), '.json');
-                if ~isfile(in_json)
-                    return
-                end
-                j0 = fileread(in_json);
-                [~,j1] = f.cost_final();
-                out_json = strcat(myfileprefix(this.out), '.json');
-                jsonrecode(j0, j1, 'filenameNew', out_json);
+                in1 = mlfourd.ImagingContext2(this.in);
+                [~,s1] = this.cost_final();
+                s2 = catstruct(struct('cmd', cmd), s1);                
+
+                out1 = mlfourd.ImagingContext2(this.out);
+                out_json = sprintf('%s.json', out1.fqfp);
+
+                jsonrecode(in1.json_metadata, s2, 'filenameNew', out_json);
             catch ME
-                %handwarning(ME)
+                handwarning(ME)
             end
         end
     end 
