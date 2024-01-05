@@ -338,6 +338,32 @@ classdef Flirt < handle & mlsystem.IHandle
             this.noclobber_ = ipr.noclobber;
         end
         
+        function [s,r] = applyIsoXfm(this, scale)
+            %% uses this.init, which defaults to this.omat
+
+            if this.noclobber && isfile(this.out.fqfn)
+                return
+            end
+            if ~isfile(this.in.fqfn)
+                this.in.save();
+            end
+            if ~isfile(this.ref.fqfn)
+                this.ref.save();
+            end
+            opts = sprintf('-paddingsize %.1f', this.paddingsize);
+            cmd = sprintf('%s -in %s -applyisoxfm %g -init %s -out %s -ref %s %s -interp %s', ...
+                this.exec, this.in.fqfn, scale, this.init, this.out.fqfn, this.ref.fqfn, ...
+                opts, ...
+                this.interp);
+            fprintf('mlfsl.Flirt.applyIsoXfm:\n%s\n', cmd)
+            [s,r] = mlbash(cmd);
+
+            % propagate json
+            if isfile(this.in.fqfp+".json")
+                copyfile(this.in.fqfp+".json", this.out.fqfp+".json")
+                this.json_add_metadata(cmd);
+            end
+        end
         function [s,r] = applyXfm(this)
             %% uses this.init, which defaults to this.omat
 
@@ -374,7 +400,7 @@ classdef Flirt < handle & mlsystem.IHandle
 
             ip = inputParser;
             addParameter(ip, 'AtoB', this.omat, @(x) istext(x) && contains(x, '.mat'))
-            addParameter(ip, 'BtoC', '', @(x) istext(x) && contains(x, '.mat'))
+            addParameter(ip, 'BtoC', this.omat, @(x) istext(x) && contains(x, '.mat'))
             addParameter(ip, 'AtoC', '', @istext)
             parse(ip, varargin{:})
             ipr = ip.Results;
