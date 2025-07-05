@@ -383,6 +383,7 @@ classdef Flirt < handle & mlsystem.IHandle
                 this.interp);
             fprintf('mlfsl.Flirt.applyXfm:\n%s\n', cmd)
             [s,r] = mlbash(cmd);
+            assert(isfile(this.out.fqfn))
 
             % propagate json
             if isfile(this.in.fqfp+".json")
